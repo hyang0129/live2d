@@ -116,7 +116,13 @@ Update the model's `.model3.json`:
 
 ### Tuning loop (agent + human)
 
-Render a labeled review video — one clip per emotion, 3 seconds each, with the emotion name overlaid — and present it for human review. For each clip the human evaluates:
+Render a labeled review video using the behavior review script and present it for human review:
+
+```
+python scripts/behavior_review.py --model-path <model_dir>/<model>.model3.json
+```
+
+This produces `tests/output/<model>_review.mp4` — one 3-second segment per expression, with the expression name overlaid and lip sync looping throughout. For each clip the human evaluates:
 
 - Does the expression read as the intended emotion?
 - Is it visually distinct from other expressions in the set?
@@ -139,27 +145,19 @@ If an expression cannot be made visually distinct with the available params, dro
 
 ---
 
-## Stage 2 — Test Renders (agent)
+## Stage 2 — Review Render (agent)
 
 Only reached if Stage 1 passes all hard checks (or the VTuber Studio Export Detour completes successfully).
 
-### 2.1 — Render one clip per expression
+Run the behavior review script in onboarding mode:
 
-For each expression in the model, create a minimal scene manifest:
-- 5 seconds, no audio, transparent background
-- Single cue: `{ "time": 0.0, "emotion": "<expression_id>" }`
-- Output: `tests/output/<model_id>_expr_<id>.mp4`
+```
+python scripts/behavior_review.py --model-path <model_dir>/<model>.model3.json
+```
 
-### 2.2 — Render one clip per motion group
+This renders one labeled segment per expression and per motion group, with lip sync looping throughout, and writes the result to `tests/output/<model>_review.mp4`. No registry entry is required — the script temporarily registers the model for the duration of the render and cleans up afterward.
 
-For each named motion group, create a minimal scene manifest:
-- 5 seconds, no audio
-- Single cue: `{ "time": 0.0, "reaction": "<group_name>" }`
-- Output: `tests/output/<model_id>_motion_<group>.mp4`
-
-### 2.3 — Render a lip sync test
-
-One short render with a real WAV file to confirm mouth movement is visible.
+Present the video for human review (Stage 3).
 
 ---
 

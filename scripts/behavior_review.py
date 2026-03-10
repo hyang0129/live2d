@@ -2,26 +2,31 @@
 """
 Behavior Review Generator
 
-Iterates through every behavior (emotion + reaction) defined for a model
-in the registry. The scene_01 audio + lipsync loop continuously for the
-entire review so the reviewer can verify lip-sync at any point, while
-the behavior (expression/motion) changes every `dur` seconds.
+Two modes:
 
-Each segment is labeled in the lower third:
+  Onboarding mode  (Stage 2 — pre-registration):
+    python scripts/behavior_review.py --model-path majo/majo.model3.json
+    Reads expressions and motions directly from the model file. No registry
+    entry required. Use this during onboarding Stage 2 to verify expressions
+    look correct before writing the registry entry, and during the VTuber
+    Studio Export Detour for the expression tuning loop.
 
-    neutral  ->  F01  (emotion)
+  Registry mode  (post-registration):
+    python scripts/behavior_review.py --model majo
+    Reads emotions and reactions from the registry entry. Use this for
+    ongoing verification or after editing a registered model.
+
+In both modes a labeled review video is produced: one segment per behavior
+(emotion/reaction), with a text overlay naming it, burned into the lower
+third. Lip sync audio loops throughout by default.
 
 Usage
 -----
-    python scripts/behavior_review.py
-    python scripts/behavior_review.py --model haru
-    python scripts/behavior_review.py --duration 5
-    python scripts/behavior_review.py --output my_review.mp4
-
-Requirements
-------------
-- build/Release/live2d-render.exe  (already built)
-- ffmpeg in PATH
+    python scripts/behavior_review.py --model-path majo/majo.model3.json
+    python scripts/behavior_review.py --model majo
+    python scripts/behavior_review.py --model haru --duration 3
+    python scripts/behavior_review.py --model-path ... --no-lipsync
+    python scripts/behavior_review.py --model majo --output custom.mp4
 """
 
 import argparse
@@ -30,73 +35,47 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-
+ROOT              = Path(__file__).resolve().parent.parent
 TEMPLATE_AUDIO    = ROOT / "tests/fixtures/cheesetest/wav/scene_01.wav"
 TEMPLATE_MANIFEST = ROOT / "tests/fixtures/cheesetest/scene_01_manifest.json"
+REGISTRY_PATH     = ROOT / "assets/models/registry.json"
+DRAFT_ID          = "__review_draft__"
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
 def _escape_drawtext(text: str) -> str:
-    text = text.replace("\\", "\\\\")
-    text = text.replace("'",  "\\'")
-    text = text.replace(":",  "\\:")
-    return text
+    return text.replace("\\", "\\\\").replace("'", "\\'").replace(":", "\\:")
 
 
 def _build_drawtext_filter(behaviors: list, dur: float) -> str:
     parts = []
-    for i, (kind, alias, model_id) in enumerate(behaviors):
-        t0 = i * dur
-        t1 = (i + 1) * dur
-        label = _escape_drawtext(f"{alias}  ->  {model_id}  ({kind})")
+    for i, b in enumerate(behaviors):
+        t0, t1 = i * dur, (i + 1) * dur
+        e = _escape_drawtext(b["label"])
         parts.append(
-            f"drawtext="
-            f"text='{label}'"
+            f"drawtext=text='{e}'"
             f":enable='between(t\\,{t0:.3f}\\,{t1:.3f})'"
-            f":fontsize=36"
-            f":fontcolor=white"
-            f":x=(w-tw)/2"
-            f":y=h-120"
-            f":box=1"
-            f":boxcolor=black@0.65"
-            f":boxborderw=14"
+            f":fontsize=36:fontcolor=white"
+            f":x=(w-tw)/2:y=h-120"
+            f":box=1:boxcolor=black@0.65:boxborderw=14"
         )
     return ",".join(parts)
 
 
 def _tile_audio(src: Path, dest: Path, total_dur: float) -> None:
-    """Loop `src` for exactly `total_dur` seconds → `dest`."""
-    result = subprocess.run(
-        [
-            "ffmpeg", "-y",
-            "-stream_loop", "-1",
-            "-i", str(src),
-            "-t", f"{total_dur:.3f}",
-            "-c", "copy",
-            str(dest),
-        ],
+    r = subprocess.run(
+        ["ffmpeg", "-y", "-stream_loop", "-1", "-i", str(src),
+         "-t", f"{total_dur:.3f}", "-c", "copy", str(dest)],
         capture_output=True,
     )
-    if result.returncode != 0:
-        raise RuntimeError(
-            f"ffmpeg audio tiling failed:\n"
-            f"{result.stderr.decode(errors='replace')}"
-        )
+    if r.returncode != 0:
+        raise RuntimeError(f"audio tile failed:\n{r.stderr.decode(errors='replace')}")
 
 
 def _tile_lipsync(keyframes: list, loop_dur: float, total_dur: float) -> list:
-    """
-    Repeat `keyframes` (one loop = `loop_dur` seconds) until `total_dur`.
-    Keyframes at or beyond `total_dur` are discarded.
-    """
-    tiled = []
-    i = 0
-    while True:
-        offset = i * loop_dur
-        if offset >= total_dur:
-            break
+    tiled, i = [], 0
+    while (offset := i * loop_dur) < total_dur:
         for kf in keyframes:
             t = round(kf["time"] + offset, 4)
             if t >= total_dur:
@@ -106,119 +85,222 @@ def _tile_lipsync(keyframes: list, loop_dur: float, total_dur: float) -> list:
     return tiled
 
 
+def _extract_id(value) -> str:
+    return value["id"] if isinstance(value, dict) else value
+
+
+# ── behavior extraction ───────────────────────────────────────────────────────
+
+def _behaviors_from_registry(model_id: str):
+    """Return (behaviors, draft_entry=None) from the registry."""
+    with open(REGISTRY_PATH, encoding="utf-8") as fh:
+        registry = json.load(fh)
+
+    entry = next((m for m in registry if m["id"] == model_id), None)
+    if entry is None:
+        ids = [m["id"] for m in registry]
+        print(f"ERROR: '{model_id}' not in registry. Available: {ids}", file=sys.stderr)
+        sys.exit(1)
+
+    behaviors = []
+    for alias, val in entry.get("emotions", {}).items():
+        mid = _extract_id(val)
+        behaviors.append({
+            "cue_key":   "emotion",
+            "cue_value": alias,
+            "label":     f"{alias}  \u2192  {mid}  (emotion)",
+        })
+    for alias, val in entry.get("reactions", {}).items():
+        mid = _extract_id(val)
+        behaviors.append({
+            "cue_key":   "reaction",
+            "cue_value": alias,
+            "label":     f"{alias}  \u2192  {mid}  (reaction)",
+        })
+
+    return behaviors, None
+
+
+def _behaviors_from_model_path(model_path: Path):
+    """
+    Return (behaviors, draft_entry) from a model3.json directly.
+    draft_entry must be temporarily inserted into the registry before rendering.
+    """
+    if not model_path.exists():
+        print(f"ERROR: not found: {model_path}", file=sys.stderr)
+        sys.exit(1)
+
+    with open(model_path, encoding="utf-8") as fh:
+        model3 = json.load(fh)
+
+    behaviors       = []
+    draft_emotions  = {}
+    draft_reactions = {}
+
+    for expr in model3.get("FileReferences", {}).get("Expressions", []):
+        name = expr.get("Name", "?")
+        behaviors.append({
+            "cue_key":   "emotion",
+            "cue_value": name,
+            "label":     f"{name}  (expression)",
+        })
+        draft_emotions[name] = {"id": name}
+
+    for group_name in model3.get("FileReferences", {}).get("Motions", {}).keys():
+        alias = group_name.lower()
+        behaviors.append({
+            "cue_key":   "reaction",
+            "cue_value": alias,
+            "label":     f"{group_name}  (motion)",
+        })
+        draft_reactions[alias] = {"id": group_name}
+
+    rel_path = str(model_path.relative_to(ROOT)).replace("\\", "/")
+    draft_entry = {
+        "id":        DRAFT_ID,
+        "path":      rel_path,
+        "emotions":  draft_emotions,
+        "reactions": draft_reactions,
+    }
+
+    return behaviors, draft_entry
+
+
+# ── registry draft helpers ────────────────────────────────────────────────────
+
+def _insert_draft(entry: dict) -> None:
+    with open(REGISTRY_PATH, encoding="utf-8") as fh:
+        registry = json.load(fh)
+    registry = [m for m in registry if m["id"] != DRAFT_ID]
+    registry.append(entry)
+    with open(REGISTRY_PATH, "w", encoding="utf-8") as fh:
+        json.dump(registry, fh, indent=2)
+
+
+def _remove_draft() -> None:
+    with open(REGISTRY_PATH, encoding="utf-8") as fh:
+        registry = json.load(fh)
+    registry = [m for m in registry if m["id"] != DRAFT_ID]
+    with open(REGISTRY_PATH, "w", encoding="utf-8") as fh:
+        json.dump(registry, fh, indent=2)
+
+
 # ── main ──────────────────────────────────────────────────────────────────────
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Render a behavior review video for a registered model."
+        description="Render a behavior review video for a Live2D model."
+    )
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
+        "--model", metavar="ID",
+        help="Model ID in registry (post-registration review)",
+    )
+    group.add_argument(
+        "--model-path", metavar="PATH",
+        help="Path to .model3.json (onboarding / pre-registration review)",
     )
     parser.add_argument(
-        "--model", default="shiori",
-        help="Model ID in assets/models/registry.json  (default: shiori)",
+        "--duration", type=float, default=None,
+        help="Seconds per behavior (default: 3 onboarding, 5 registry)",
     )
     parser.add_argument(
-        "--duration", type=float, default=5.0,
-        help="Seconds per behavior  (default: 5.0)",
+        "--no-lipsync", action="store_true",
+        help="Skip lip sync audio",
     )
     parser.add_argument(
         "--output", default=None,
-        help="Output path  (default: tests/output/review_<model>.mp4)",
+        help="Output path (default: tests/output/<stem>_review.mp4)",
     )
     args = parser.parse_args()
 
-    dur: float = args.duration
-
-    # ── load registry ──────────────────────────────────────────────────────
-    with open(ROOT / "assets/models/registry.json", encoding="utf-8") as fh:
-        registry: list = json.load(fh)
-
-    model_entry = next((m for m in registry if m["id"] == args.model), None)
-    if model_entry is None:
-        ids = [m["id"] for m in registry]
-        print(f"ERROR: model '{args.model}' not in registry. Available: {ids}",
-              file=sys.stderr)
-        sys.exit(1)
-
     # ── collect behaviors ──────────────────────────────────────────────────
-    def _extract_id(value) -> str:
-        """Registry values may be a plain string or {"id": "...", "note": "..."}."""
-        return value["id"] if isinstance(value, dict) else value
+    onboarding     = args.model_path is not None
+    draft_inserted = False
 
-    behaviors: list[tuple[str, str, str]] = []
-    for alias, value in model_entry.get("emotions", {}).items():
-        behaviors.append(("emotion", alias, _extract_id(value)))
-    for alias, value in model_entry.get("reactions", {}).items():
-        behaviors.append(("reaction", alias, _extract_id(value)))
+    if onboarding:
+        model_path             = (ROOT / args.model_path).resolve()
+        behaviors, draft_entry = _behaviors_from_model_path(model_path)
+        render_id              = DRAFT_ID
+        dur                    = args.duration or 3.0
+        out_stem               = model_path.stem
+        mode_label             = "onboarding (pre-registration)"
+    else:
+        behaviors, _ = _behaviors_from_registry(args.model)
+        render_id    = args.model
+        dur          = args.duration or 5.0
+        out_stem     = args.model
+        mode_label   = "registry"
 
     if not behaviors:
-        print(f"ERROR: no behaviors defined for '{args.model}' in registry.",
-              file=sys.stderr)
+        print("ERROR: no behaviors found.", file=sys.stderr)
         sys.exit(1)
 
-    print(f"Model     : {args.model}  ({model_entry['path']})")
-    print(f"Behaviors : {len(behaviors)}")
-    for kind, alias, mid in behaviors:
-        print(f"  {kind:8s}  {alias:18s}  ->  {mid}")
-
     total_dur = dur * len(behaviors)
-    print(f"\nDuration  : {dur:.1f}s × {len(behaviors)} behaviors = {total_dur:.1f}s total")
 
-    # ── load template ──────────────────────────────────────────────────────
-    with open(TEMPLATE_MANIFEST, encoding="utf-8") as fh:
-        template: dict = json.load(fh)
+    print(f"Mode      : {mode_label}")
+    print(f"Model     : {render_id}")
+    print(f"Behaviors : {len(behaviors)}")
+    for b in behaviors:
+        print(f"  {b['label']}")
+    print(f"Duration  : {dur:.1f}s x {len(behaviors)} = {total_dur:.1f}s total")
 
-    template_lipsync: list[dict] = template.get("lipsync", [])
-
-    # Period of one lipsync loop: last keyframe time + 1 s tail
-    # (mirrors the renderer's own duration formula so loop boundaries are clean)
-    max_lipsync_t = max((kf["time"] for kf in template_lipsync), default=0.0)
-    loop_dur = max_lipsync_t + 1.0
-
-    # ── output paths ──────────────────────────────────────────────────────
+    # ── output paths ───────────────────────────────────────────────────────
     out_dir = ROOT / "tests/output"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    tiled_audio_path = out_dir / f"review_{args.model}_audio.wav"
-    raw_path         = out_dir / f"review_{args.model}_raw.mp4"
-    final_path       = (Path(args.output) if args.output
-                        else out_dir / f"review_{args.model}.mp4")
-    manifest_path    = out_dir / f"review_{args.model}_manifest.json"
+    raw_path      = out_dir / f"{out_stem}_review_raw.mp4"
+    final_path    = Path(args.output) if args.output else out_dir / f"{out_stem}_review.mp4"
+    manifest_path = out_dir / f"{out_stem}_review_manifest.json"
 
-    # ── tile audio ────────────────────────────────────────────────────────
-    if not TEMPLATE_AUDIO.exists():
-        print(f"ERROR: template audio not found: {TEMPLATE_AUDIO}", file=sys.stderr)
-        sys.exit(1)
+    # ── lipsync / audio ────────────────────────────────────────────────────
+    use_lipsync = (
+        not args.no_lipsync
+        and TEMPLATE_AUDIO.exists()
+        and TEMPLATE_MANIFEST.exists()
+    )
 
-    print(f"\nTiling audio for {total_dur:.1f}s …")
-    _tile_audio(TEMPLATE_AUDIO, tiled_audio_path, total_dur)
+    tiled_lipsync    = []
+    audio_arg        = None
+    tiled_audio_path = None
+    tmpl             = {}
 
-    # ── tile lipsync ──────────────────────────────────────────────────────
-    tiled_lipsync = _tile_lipsync(template_lipsync, loop_dur, total_dur)
+    if use_lipsync:
+        with open(TEMPLATE_MANIFEST, encoding="utf-8") as fh:
+            tmpl = json.load(fh)
+        template_lipsync = tmpl.get("lipsync", [])
+        max_t    = max((kf["time"] for kf in template_lipsync), default=0.0)
+        loop_dur = max_t + 1.0
 
-    # ── behavior cues ─────────────────────────────────────────────────────
+        tiled_audio_path = out_dir / f"{out_stem}_review_audio.wav"
+        print(f"\nTiling audio for {total_dur:.1f}s ...")
+        _tile_audio(TEMPLATE_AUDIO, tiled_audio_path, total_dur)
+
+        tiled_lipsync = _tile_lipsync(template_lipsync, loop_dur, total_dur)
+        audio_arg     = str(tiled_audio_path).replace("\\", "/")
+    else:
+        reason = "--no-lipsync" if args.no_lipsync else "template audio not found"
+        print(f"Lip sync  : disabled ({reason})")
+
+    # ── build cues ─────────────────────────────────────────────────────────
     cues = []
-    for i, (kind, alias, _) in enumerate(behaviors):
-        t = round(i * dur, 3)
-        key = "emotion" if kind == "emotion" else "reaction"
-        cues.append({"time": t, key: alias})
+    for i, b in enumerate(behaviors):
+        cues.append({"time": round(i * dur, 3), b["cue_key"]: b["cue_value"]})
 
-    # Terminal hold cue so the renderer produces exactly total_dur frames.
-    # Renderer formula: scene_duration = max(last_cue, last_lipsync) + 1 s
-    # → set last_cue = total_dur - 1.0 so scene_duration = total_dur.
+    # Terminal hold: ensures renderer produces exactly total_dur frames
     terminal_t = round(total_dur - 1.0, 3)
     if terminal_t > cues[-1]["time"]:
-        last_kind, last_alias, _ = behaviors[-1]
-        key = "emotion" if last_kind == "emotion" else "reaction"
-        cues.append({"time": terminal_t, key: last_alias})
+        last = behaviors[-1]
+        cues.append({"time": terminal_t, last["cue_key"]: last["cue_value"]})
 
-    # ── write manifest ────────────────────────────────────────────────────
+    # ── write manifest ─────────────────────────────────────────────────────
     manifest = {
         "schema_version": "1.0",
-        "model":      template["model"],
-        "audio":      str(tiled_audio_path).replace("\\", "/"),
+        "model":      {"id": render_id},
+        "audio":      audio_arg,
         "output":     str(raw_path).replace("\\", "/"),
-        "resolution": template["resolution"],
-        "fps":        template["fps"],
+        "resolution": tmpl.get("resolution", [1080, 1920]),
+        "fps":        tmpl.get("fps", 30),
         "background": "#1a1a2e",
         "lipsync":    tiled_lipsync,
         "cues":       cues,
@@ -227,23 +309,35 @@ def main() -> None:
     with open(manifest_path, "w", encoding="utf-8") as fh:
         json.dump(manifest, fh, indent=2)
 
-    print(f"Manifest   : {manifest_path}")
-    print(f"Lipsync    : {len(tiled_lipsync)} keyframes "
-          f"({len(template_lipsync)} × ~{total_dur / loop_dur:.1f} loops)")
+    print(f"\nManifest  : {manifest_path}")
+    if tiled_lipsync:
+        print(f"Lipsync   : {len(tiled_lipsync)} keyframes")
+
+    # ── temporarily register draft (onboarding mode only) ─────────────────
+    if onboarding:
+        _insert_draft(draft_entry)
+        draft_inserted = True
 
     # ── render ────────────────────────────────────────────────────────────
     renderer = ROOT / "build/Release/live2d-render.exe"
     if not renderer.exists():
         print(f"ERROR: renderer not found at {renderer}\n"
-              f"       Run: cmake --build build --config Release",
-              file=sys.stderr)
+              f"       Run: cmake --build build --config Release", file=sys.stderr)
+        if draft_inserted:
+            _remove_draft()
         sys.exit(1)
 
-    print(f"\nRendering …")
-    result = subprocess.run(
-        [str(renderer), "--scene", str(manifest_path)],
-        cwd=str(ROOT),
-    )
+    print("Rendering ...")
+    try:
+        result = subprocess.run(
+            [str(renderer), "--scene", str(manifest_path)],
+            cwd=str(ROOT),
+        )
+    finally:
+        if draft_inserted:
+            _remove_draft()
+            draft_inserted = False
+
     if result.returncode != 0:
         print(f"ERROR: renderer exited {result.returncode}", file=sys.stderr)
         sys.exit(result.returncode)
@@ -252,17 +346,17 @@ def main() -> None:
         print(f"ERROR: expected output not found: {raw_path}", file=sys.stderr)
         sys.exit(1)
 
-    # ── burn labels ───────────────────────────────────────────────────────
+    # ── burn labels ────────────────────────────────────────────────────────
     vf = _build_drawtext_filter(behaviors, dur)
 
-    print("Burning labels …")
+    print("Burning labels ...")
     result = subprocess.run(
         [
             "ffmpeg", "-y",
             "-i", str(raw_path),
             "-vf", vf,
             "-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p",
-            "-c:a", "copy",
+            *([ "-c:a", "copy"] if use_lipsync else ["-an"]),
             str(final_path),
         ],
         cwd=str(ROOT),
@@ -271,17 +365,14 @@ def main() -> None:
         print(f"ERROR: ffmpeg label burn exited {result.returncode}", file=sys.stderr)
         sys.exit(result.returncode)
 
-    # ── clean up intermediates ────────────────────────────────────────────
+    # ── cleanup intermediates ──────────────────────────────────────────────
     raw_path.unlink(missing_ok=True)
-    tiled_audio_path.unlink(missing_ok=True)
+    if tiled_audio_path:
+        tiled_audio_path.unlink(missing_ok=True)
 
     print(f"\nDone.")
-    print(f"  Review video : {final_path}")
-    print(f"  Manifest     : {manifest_path}")
-    print()
-    print("Behavior map:")
-    for kind, alias, mid in behaviors:
-        print(f"  {alias:18s}  ->  {mid:10s}  ({kind})")
+    print(f"  Review   : {final_path}")
+    print(f"  Manifest : {manifest_path}")
 
 
 if __name__ == "__main__":
