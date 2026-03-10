@@ -1,0 +1,183 @@
+{
+  "schema_version": "1.0",
+  "model": {
+    "id": "shiori",
+    "path": "assets/models/shiori/shiori.model3.json"
+  },
+  "audio": "results/test/stages/avatar_package_20260310_114308/avatar_takes/wav/scene_03.wav",
+  "output": "results/test/stages/avatar_package_20260310_114308/avatar_takes/scene_03.mp4",
+  "resolution": [
+    1080,
+    1920
+  ],
+  "fps": 30,
+  "background": "transparent",
+  "lipsync": [
+    {
+      "time": 0.0,
+      "mouth_shape": "X"
+    },
+    {
+      "time": 0.15,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 0.2,
+      "mouth_shape": "E"
+    },
+    {
+      "time": 0.24,
+      "mouth_shape": "H"
+    },
+    {
+      "time": 0.31,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 0.38,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 0.45,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 0.66,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 0.87,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 0.94,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 1.15,
+      "mouth_shape": "F"
+    },
+    {
+      "time": 1.22,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 1.29,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 1.36,
+      "mouth_shape": "F"
+    },
+    {
+      "time": 1.43,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 1.5,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 1.57,
+      "mouth_shape": "F"
+    },
+    {
+      "time": 1.71,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 1.78,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 2.22,
+      "mouth_shape": "E"
+    },
+    {
+      "time": 2.29,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 2.5,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 2.57,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 2.74,
+      "mouth_shape": "A"
+    },
+    {
+      "time": 2.82,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 3.0,
+      "mouth_shape": "F"
+    },
+    {
+      "time": 3.07,
+      "mouth_shape": "A"
+    },
+    {
+      "time": 3.15,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 3.35,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 3.7,
+      "mouth_shape": "E"
+    },
+    {
+      "time": 3.91,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 4.12,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 4.26,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 4.33,
+      "mouth_shape": "F"
+    },
+    {
+      "time": 4.47,
+      "mouth_shape": "A"
+    },
+    {
+      "time": 4.55,
+      "mouth_shape": "E"
+    },
+    {
+      "time": 4.76,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 4.9,
+      "mouth_shape": "E"
+    },
+    {
+      "time": 5.18,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 5.53,
+      "mouth_shape": "X"
+    }
+  ],
+  "cues": [
+    {
+      "time": 0.0,
+      "emotion": "neutral"
+    }
+  ]
+}

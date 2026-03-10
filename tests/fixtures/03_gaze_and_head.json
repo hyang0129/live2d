@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "model": {
+    "id": "shiori",
+    "path": "assets/models/shiori/shiori.model3.json"
+  },
+  "audio": null,
+  "output": "tests/output/03_gaze_and_head.mp4",
+  "resolution": [1080, 1920],
+  "fps": 30,
+  "background": "transparent",
+  "lipsync": [],
+  "cues": [
+    { "time": 0.0, "emotion": "neutral" },
+    { "time": 1.0, "gaze":   { "x":  0.0,  "y":  0.0  } },
+    { "time": 2.0, "gaze":   { "x":  1.0,  "y":  0.0  } },
+    { "time": 3.0, "gaze":   { "x": -1.0,  "y":  0.0  } },
+    { "time": 4.0, "gaze":   { "x":  0.0,  "y":  1.0  } },
+    { "time": 5.0, "gaze":   { "x":  0.0,  "y": -1.0  } },
+    { "time": 6.0, "gaze":   { "x":  0.0,  "y":  0.0  } },
+    { "time": 7.0, "head":   { "yaw":  30, "pitch":   0, "roll":  0 } },
+    { "time": 8.0, "head":   { "yaw": -30, "pitch":   0, "roll":  0 } },
+    { "time": 9.0, "head":   { "yaw":   0, "pitch":  20, "roll":  0 } },
+    { "time": 10.0,"head":   { "yaw":   0, "pitch": -20, "roll":  0 } },
+    { "time": 11.0,"head":   { "yaw":  15, "pitch": -10, "roll": 15 } },
+    { "time": 12.0,"head":   { "yaw":   0, "pitch":   0, "roll":  0 } }
+  ]
+}

@@ -1,0 +1,275 @@
+{
+  "schema_version": "1.0",
+  "model": {
+    "id": "shiori",
+    "path": "assets/models/shiori/shiori.model3.json"
+  },
+  "audio": "results/test/stages/avatar_package_20260310_114308/avatar_takes/wav/scene_04.wav",
+  "output": "results/test/stages/avatar_package_20260310_114308/avatar_takes/scene_04.mp4",
+  "resolution": [
+    1080,
+    1920
+  ],
+  "fps": 30,
+  "background": "transparent",
+  "lipsync": [
+    {
+      "time": 0.0,
+      "mouth_shape": "X"
+    },
+    {
+      "time": 0.12,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 0.17,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 0.43,
+      "mouth_shape": "A"
+    },
+    {
+      "time": 0.51,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 0.68,
+      "mouth_shape": "A"
+    },
+    {
+      "time": 0.76,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 0.9,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 1.18,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 1.25,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 1.48,
+      "mouth_shape": "F"
+    },
+    {
+      "time": 1.59,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 1.8,
+      "mouth_shape": "H"
+    },
+    {
+      "time": 1.87,
+      "mouth_shape": "E"
+    },
+    {
+      "time": 2.08,
+      "mouth_shape": "F"
+    },
+    {
+      "time": 2.15,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 2.22,
+      "mouth_shape": "A"
+    },
+    {
+      "time": 2.3,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 2.41,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 2.83,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 2.9,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 2.97,
+      "mouth_shape": "A"
+    },
+    {
+      "time": 3.11,
+      "mouth_shape": "E"
+    },
+    {
+      "time": 3.4,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 3.47,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 3.54,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 3.89,
+      "mouth_shape": "E"
+    },
+    {
+      "time": 4.03,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 4.1,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 4.24,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 4.66,
+      "mouth_shape": "X"
+    },
+    {
+      "time": 5.28,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 5.47,
+      "mouth_shape": "A"
+    },
+    {
+      "time": 5.55,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 5.62,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 5.76,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 5.83,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 5.9,
+      "mouth_shape": "E"
+    },
+    {
+      "time": 5.97,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 6.11,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 6.25,
+      "mouth_shape": "E"
+    },
+    {
+      "time": 6.39,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 6.46,
+      "mouth_shape": "A"
+    },
+    {
+      "time": 6.54,
+      "mouth_shape": "D"
+    },
+    {
+      "time": 6.75,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 6.89,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 6.96,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 7.03,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 7.1,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 7.48,
+      "mouth_shape": "A"
+    },
+    {
+      "time": 7.56,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 7.91,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 7.98,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 8.26,
+      "mouth_shape": "E"
+    },
+    {
+      "time": 8.4,
+      "mouth_shape": "A"
+    },
+    {
+      "time": 8.54,
+      "mouth_shape": "G"
+    },
+    {
+      "time": 8.62,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 8.69,
+      "mouth_shape": "F"
+    },
+    {
+      "time": 9.04,
+      "mouth_shape": "D"
+    },
+    {
+      "time": 9.11,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 9.53,
+      "mouth_shape": "F"
+    },
+    {
+      "time": 9.6,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 9.88,
+      "mouth_shape": "X"
+    }
+  ],
+  "cues": [
+    {
+      "time": 0.0,
+      "emotion": "neutral"
+    }
+  ]
+}

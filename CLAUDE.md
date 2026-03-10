@@ -10,10 +10,49 @@ Claude has full permissions for this directory. Proceed autonomously without ask
 
 ## Project Overview
 
-**Live2D Cubism Native SDK** — C++ SDK for displaying Live2D models in native applications.
+**Live2D Avatar Renderer** — A CLI/embeddable function that accepts a scene manifest from an orchestrating system and renders a Live2D avatar to video.
 
-- SDK version: 5-r.4.1
-- Root: `cubism/`
+### Mental Model
+
+This project is an **actor**, not a director. The external orchestrator (video_agent) provides the script, audio, emotional cues, and timing. This system interprets those directions and renders the performance to video.
+
+### Inputs
+
+A **scene manifest** (JSON) with:
+- `model` — path to `.model3.json`
+- `audio` — voice-over WAV for lip sync
+- `output` — destination video file
+- `resolution`, `fps`
+- `cues` — timed directives (emotions, reactions, gaze, head angles)
+
+### Outputs
+
+Rendered video with lip sync, expression changes, reactions, physics simulation, and optional transparent background.
+
+### Architecture
+
+```
+[Director System] → scene manifest (JSON)
+      ↓
+Renderer CLI
+  ├── Audio Analyzer  → Live2D Model Engine (Cubism Native SDK 5-r.4.1)
+  └── Cue Sequencer   →        ↓
+                       Offscreen Renderer (D3D11 / OpenGL)
+                               ↓
+                       Video Encoder (FFmpeg)
+      ↓
+output.mp4
+```
+
+### Development Stack
+
+| Component | Technology |
+|---|---|
+| Model rendering | Live2D Cubism Native SDK 5-r.4.1 |
+| Graphics backend | D3D11 (Windows primary), OpenGL (cross-platform) |
+| Lip sync | Audio amplitude → `ParamMouthOpenY` |
+| Video encoding | FFmpeg |
+| Build system | CMake + Visual Studio 2022 |
 
 ### Directory Structure
 
@@ -28,20 +67,18 @@ cubism/
     ├── OpenGL/   # OpenGL sample
     ├── Vulkan/   # Vulkan sample
     └── Resources/# Model files and assets
+docs/
+└── live2d-avatar-api-contract.md  # Full interface contract
 ```
 
-### Build System
+### Key Files
 
-- CMake (3.31.7+)
-- Visual Studio 2019/2022 on Windows
-- Each sample has its own `README.md` with build instructions
-- Build output goes to `bin/` inside each sample's cmake build directory
-
-### Key Source Files
-
+- `docs/live2d-avatar-api-contract.md` — scene manifest schema, cue vocabulary, CLI spec
+- `docs/model-onboarding.md` — checklist for evaluating and registering new models (pass/fail criteria, test-render workflow, rejection log)
+- `assets/models/registry.json` — model registry mapping IDs to paths, emotions, and reactions
+- `SDK_README.md` — Live2D Cubism SDK reference (internal rendering layer)
 - `Framework/` — Cubism Native Framework (rendering, animation, model loading)
-- `Samples/OpenGL/Demo/proj.*/` — OpenGL sample projects per platform
-- `Samples/D3D11/Demo/proj.*/` — D3D11 sample projects per platform
+- `Samples/D3D11/Demo/proj.*/` — D3D11 sample projects
 
 ### Development Environment (Windows)
 

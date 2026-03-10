@@ -1,0 +1,10 @@
+{
+	"Type": "Live2D Expression",
+	"Parameters": [
+		{ "Id": "ParamEyeLOpen",  "Value": 0.8,  "Blend": "Multiply" },
+		{ "Id": "ParamEyeROpen",  "Value": 0.8,  "Blend": "Multiply" },
+		{ "Id": "ParamBrowLY",    "Value": -0.2,  "Blend": "Add" },
+		{ "Id": "ParamBrowLForm", "Value": 0.6,   "Blend": "Add" },
+		{ "Id": "ParamMouthForm", "Value": -1.76, "Blend": "Add" }
+	]
+}

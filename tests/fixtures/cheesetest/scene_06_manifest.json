@@ -1,0 +1,151 @@
+{
+  "schema_version": "1.0",
+  "model": {
+    "id": "shiori",
+    "path": "assets/models/shiori/shiori.model3.json"
+  },
+  "audio": "results/test/stages/avatar_package_20260310_114308/avatar_takes/wav/scene_06.wav",
+  "output": "results/test/stages/avatar_package_20260310_114308/avatar_takes/scene_06.mp4",
+  "resolution": [
+    1080,
+    1920
+  ],
+  "fps": 30,
+  "background": "transparent",
+  "lipsync": [
+    {
+      "time": 0.0,
+      "mouth_shape": "X"
+    },
+    {
+      "time": 0.12,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 0.17,
+      "mouth_shape": "F"
+    },
+    {
+      "time": 0.35,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 0.42,
+      "mouth_shape": "A"
+    },
+    {
+      "time": 0.5,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 0.6,
+      "mouth_shape": "A"
+    },
+    {
+      "time": 0.68,
+      "mouth_shape": "E"
+    },
+    {
+      "time": 0.83,
+      "mouth_shape": "G"
+    },
+    {
+      "time": 0.9,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 1.32,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 1.46,
+      "mouth_shape": "A"
+    },
+    {
+      "time": 1.54,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 1.82,
+      "mouth_shape": "G"
+    },
+    {
+      "time": 1.89,
+      "mouth_shape": "A"
+    },
+    {
+      "time": 1.97,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 2.21,
+      "mouth_shape": "E"
+    },
+    {
+      "time": 2.28,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 2.35,
+      "mouth_shape": "E"
+    },
+    {
+      "time": 2.42,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 2.49,
+      "mouth_shape": "A"
+    },
+    {
+      "time": 2.6,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 2.7,
+      "mouth_shape": "E"
+    },
+    {
+      "time": 2.84,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 2.91,
+      "mouth_shape": "F"
+    },
+    {
+      "time": 2.98,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 3.26,
+      "mouth_shape": "G"
+    },
+    {
+      "time": 3.33,
+      "mouth_shape": "C"
+    },
+    {
+      "time": 3.4,
+      "mouth_shape": "G"
+    },
+    {
+      "time": 3.47,
+      "mouth_shape": "E"
+    },
+    {
+      "time": 3.54,
+      "mouth_shape": "B"
+    },
+    {
+      "time": 4.1,
+      "mouth_shape": "X"
+    }
+  ],
+  "cues": [
+    {
+      "time": 0.0,
+      "emotion": "neutral"
+    }
+  ]
+}

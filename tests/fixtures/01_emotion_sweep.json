@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "model": {
+    "id": "shiori",
+    "path": "assets/models/shiori/shiori.model3.json"
+  },
+  "audio": null,
+  "output": "tests/output/01_emotion_sweep.mp4",
+  "resolution": [1080, 1920],
+  "fps": 30,
+  "background": "transparent",
+  "lipsync": [],
+  "cues": [
+    { "time": 0.0,  "emotion": "neutral"   },
+    { "time": 2.0,  "emotion": "happy"     },
+    { "time": 4.0,  "emotion": "surprised" },
+    { "time": 6.0,  "emotion": "sad"       },
+    { "time": 8.0,  "emotion": "angry"     },
+    { "time": 10.0, "emotion": "neutral"   }
+  ]
+}

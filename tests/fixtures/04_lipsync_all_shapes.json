@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "model": {
+    "id": "shiori",
+    "path": "assets/models/shiori/shiori.model3.json"
+  },
+  "audio": null,
+  "output": "tests/output/04_lipsync_all_shapes.mp4",
+  "resolution": [1080, 1920],
+  "fps": 30,
+  "background": "transparent",
+  "lipsync": [
+    { "time": 0.00, "mouth_shape": "X" },
+    { "time": 0.20, "mouth_shape": "A" },
+    { "time": 0.40, "mouth_shape": "B" },
+    { "time": 0.60, "mouth_shape": "C" },
+    { "time": 0.80, "mouth_shape": "D" },
+    { "time": 1.00, "mouth_shape": "E" },
+    { "time": 1.20, "mouth_shape": "F" },
+    { "time": 1.40, "mouth_shape": "G" },
+    { "time": 1.60, "mouth_shape": "H" },
+    { "time": 1.80, "mouth_shape": "X" },
+    { "time": 2.00, "mouth_shape": "B" },
+    { "time": 2.20, "mouth_shape": "A" },
+    { "time": 2.40, "mouth_shape": "D" },
+    { "time": 2.60, "mouth_shape": "X" }
+  ],
+  "cues": [
+    { "time": 0.0, "emotion": "neutral" }
+  ]
+}

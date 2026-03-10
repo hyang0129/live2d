@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "model": {
+    "id": "shiori",
+    "path": "assets/models/shiori/shiori.model3.json"
+  },
+  "audio": null,
+  "output": "tests/output/05_combined_scene.mp4",
+  "resolution": [1080, 1920],
+  "fps": 30,
+  "background": "transparent",
+  "lipsync": [
+    { "time": 0.00, "mouth_shape": "X" },
+    { "time": 1.00, "mouth_shape": "B" },
+    { "time": 1.08, "mouth_shape": "A" },
+    { "time": 1.16, "mouth_shape": "D" },
+    { "time": 1.24, "mouth_shape": "B" },
+    { "time": 1.32, "mouth_shape": "X" },
+    { "time": 2.50, "mouth_shape": "B" },
+    { "time": 2.58, "mouth_shape": "C" },
+    { "time": 2.66, "mouth_shape": "D" },
+    { "time": 2.74, "mouth_shape": "X" },
+    { "time": 4.00, "mouth_shape": "A" },
+    { "time": 4.08, "mouth_shape": "B" },
+    { "time": 4.16, "mouth_shape": "X" }
+  ],
+  "cues": [
+    { "time": 0.0,  "emotion": "neutral"                         },
+    { "time": 0.8,  "emotion": "happy"                           },
+    { "time": 1.5,  "reaction": "nod"                            },
+    { "time": 2.0,  "gaze":    { "x": 0.3, "y": 0.0 }           },
+    { "time": 2.4,  "emotion": "surprised"                       },
+    { "time": 3.0,  "reaction": "blink"                          },
+    { "time": 3.2,  "head":    { "yaw": -10, "pitch": 5, "roll": 0 } },
+    { "time": 3.8,  "head":    { "yaw":   0, "pitch": 0, "roll": 0 } },
+    { "time": 4.0,  "emotion": "neutral"                         },
+    { "time": 4.5,  "gaze":    { "x": 0.0, "y": 0.0 }           }
+  ]
+}

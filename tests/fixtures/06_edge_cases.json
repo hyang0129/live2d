@@ -1,0 +1,28 @@
+{
+  "_comment": "Edge cases: simultaneous-ish cues, boundary gaze/head values, unknown key (should be ignored)",
+  "schema_version": "1.0",
+  "model": {
+    "id": "shiori",
+    "path": "assets/models/shiori/shiori.model3.json"
+  },
+  "audio": null,
+  "output": "tests/output/06_edge_cases.mp4",
+  "resolution": [1080, 1920],
+  "fps": 30,
+  "background": "transparent",
+  "lipsync": [
+    { "time": 0.0, "mouth_shape": "X" }
+  ],
+  "cues": [
+    { "time": 0.0,  "emotion": "neutral"                                    },
+    { "time": 0.0,  "gaze":    { "x": 0.0, "y": 0.0 }                      },
+    { "time": 1.0,  "gaze":    { "x": 1.0, "y": 1.0 }                      },
+    { "time": 2.0,  "gaze":    { "x": -1.0, "y": -1.0 }                    },
+    { "time": 3.0,  "head":    { "yaw": 90, "pitch": 45, "roll": 45 }       },
+    { "time": 4.0,  "head":    { "yaw": -90, "pitch": -45, "roll": -45 }    },
+    { "time": 5.0,  "unknown_future_key": "should_be_ignored"               },
+    { "time": 5.0,  "emotion": "happy"                                      },
+    { "time": 6.0,  "reaction": "nod"                                       },
+    { "time": 6.0,  "emotion": "surprised"                                  }
+  ]
+}

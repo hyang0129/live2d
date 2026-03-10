@@ -1,0 +1,89 @@
+[
+  {
+    "id": "shiori",
+    "path": "cubism/Samples/Resources/Haru/Haru.model3.json",
+    "emotions": {
+      "neutral":     { "id": "F01", "note": "Resting face. Calm, composed default state. Use as a reset between other expressions." },
+      "curious":     { "id": "F02", "note": "Neutral face with slightly raised eyebrows. Conveys mild interest, attentiveness, or a hint of surprise. Use for listening beats or gentle reactions." },
+      "angry":       { "id": "F03", "note": "Clear furrowed brow and narrowed eyes. Strong negative emotion — use for frustration, irritation, or confrontation." },
+      "sad":         { "id": "F04", "note": "Downcast eyes and softened features. Use for disappointment, empathy, or somber moments." },
+      "happy":       { "id": "F05", "note": "Warm smile with softly closed eyes. Elevated joy — more intense than a neutral smile. Use for good news, laughter, or warm moments." },
+      "surprised":   { "id": "F06", "note": "Wide open eyes, clear look of shock or astonishment. Use for unexpected reveals or sudden reactions." },
+      "embarrassed": { "id": "F07", "note": "Flustered expression. Use for awkward situations, compliments, or self-conscious moments." },
+      "bored":       { "id": "F08", "note": "Heavy-lidded, uninterested look. Use to convey disengagement, impatience, or mild disdain." }
+    },
+    "reactions": {
+      "idle": { "id": "Idle",     "note": "Default idle animation loop. Subtle breathing and natural movement." },
+      "tap":  { "id": "TapBody",  "note": "Reaction to a tap or touch interaction. Brief startled or responsive motion." }
+    }
+  },
+  {
+    "id": "haru",
+    "path": "cubism/Samples/Resources/Haru/Haru.model3.json",
+    "emotions": {
+      "neutral":     { "id": "F01", "note": "Resting face. Calm, composed default state. Use as a reset between other expressions." },
+      "curious":     { "id": "F02", "note": "Neutral face with slightly raised eyebrows. Conveys mild interest, attentiveness, or a hint of surprise. Use for listening beats or gentle reactions." },
+      "angry":       { "id": "F03", "note": "Clear furrowed brow and narrowed eyes. Strong negative emotion — use for frustration, irritation, or confrontation." },
+      "sad":         { "id": "F04", "note": "Downcast eyes and softened features. Use for disappointment, empathy, or somber moments." },
+      "happy":       { "id": "F05", "note": "Warm smile with softly closed eyes. Elevated joy — more intense than a neutral smile. Use for good news, laughter, or warm moments." },
+      "surprised":   { "id": "F06", "note": "Wide open eyes, clear look of shock or astonishment. Use for unexpected reveals or sudden reactions." },
+      "embarrassed": { "id": "F07", "note": "Flustered expression. Use for awkward situations, compliments, or self-conscious moments." },
+      "bored":       { "id": "F08", "note": "Heavy-lidded, uninterested look. Use to convey disengagement, impatience, or mild disdain." }
+    },
+    "reactions": {
+      "idle": { "id": "Idle",     "note": "Default idle animation loop. Subtle breathing and natural movement." },
+      "tap":  { "id": "TapBody",  "note": "Reaction to a tap or touch interaction. Brief startled or responsive motion." }
+    }
+  },
+  {
+    "id": "hiyori",
+    "path": "cubism/Samples/Resources/Hiyori/Hiyori.model3.json",
+    "emotions": {},
+    "reactions": {
+      "idle": { "id": "Idle",    "note": "Default idle animation loop." },
+      "tap":  { "id": "TapBody", "note": "Reaction to a tap or touch interaction." }
+    }
+  },
+  {
+    "id": "mao",
+    "path": "cubism/Samples/Resources/Mao/Mao.model3.json",
+    "emotions": {},
+    "reactions": {
+      "idle": { "id": "Idle",    "note": "Default idle animation loop." },
+      "tap":  { "id": "TapBody", "note": "Reaction to a tap or touch interaction." }
+    }
+  },
+  {
+    "id": "mark",
+    "path": "cubism/Samples/Resources/Mark/Mark.model3.json",
+    "emotions": {},
+    "reactions": {
+      "idle": { "id": "Idle",    "note": "Default idle animation loop." },
+      "tap":  { "id": "TapBody", "note": "Reaction to a tap or touch interaction." }
+    }
+  },
+  {
+    "id": "natori",
+    "path": "cubism/Samples/Resources/Natori/Natori.model3.json",
+    "emotions": {},
+    "reactions": {
+      "idle": { "id": "Idle",    "note": "Default idle animation loop." },
+      "tap":  { "id": "TapBody", "note": "Reaction to a tap or touch interaction." }
+    }
+  },
+  {
+    "id": "majo",
+    "path": "assets/models/majo/majo.model3.json",
+    "emotions": {
+      "neutral":   { "id": "neutral",   "note": "Slight upward mouth curve. Calm resting state." },
+      "happy":     { "id": "happy",     "note": "Eyes closed to smile shape with raised brows. Warm, positive." },
+      "surprised": { "id": "surprised", "note": "Wide eyes ×2, raised brow, open mouth form." },
+      "bored":     { "id": "bored",     "note": "Heavy-lidded eyes 80%, flat brow form, downturned mouth." },
+      "sad":       { "id": "sad",       "note": "Soft eyes 80%, brow slightly down with arched form (worried shape), strongly downturned mouth." },
+      "angry":     { "id": "angry",     "note": "Brow fully down, negative brow form, strong negative mouth, mouth open." }
+    },
+    "reactions": {
+      "idle": { "id": "Idle", "note": "Default idle loop from Scene1.motion3.json. ~3s loop." }
+    }
+  }
+]

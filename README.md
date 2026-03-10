@@ -1,434 +1,273 @@
-# Live2D Cubism SDK Native — Developer Reference
+# Live2D Avatar Renderer
 
-This document summarizes how to work with the Live2D Cubism SDK Native to load, animate, and render Live2D models.
-
----
-
-## Repository Layout
-
-```
-cubism/
-├── Core/                   # Precompiled C library + single header (Live2DCubismCore.h)
-├── Framework/              # C++ wrappers for rendering and animation
-│   └── src/
-│       ├── Effect/         # EyeBlink, Breath, Pose
-│       ├── Id/             # CubismId, CubismIdManager
-│       ├── Math/           # Matrix, Vector, TargetPoint utilities
-│       ├── Model/          # CubismMoc, CubismModel, CubismModelSettingJson
-│       ├── Motion/         # CubismMotion, CubismMotionManager, expressions
-│       ├── Physics/        # CubismPhysics
-│       ├── Rendering/      # CubismRenderer + platform backends
-│       ├── Type/           # csmVector, csmMap, csmString
-│       └── Utils/          # CubismJson, CubismDebug
-└── Samples/
-    ├── D3D9/               # DirectX 9 demo
-    ├── D3D11/              # DirectX 11 demo  ← best reference for Windows
-    ├── OpenGL/             # OpenGL ES 2.0 demo (cross-platform)
-    ├── Metal/              # Metal demo (macOS/iOS)
-    └── Vulkan/             # Vulkan demo
-```
+A CLI that takes direction from an orchestrating system and renders a Live2D avatar to video.
 
 ---
 
-## Core Concepts
+## Mental Model
 
-| Concept | Description |
-|---|---|
-| **MOC** | Compiled model data (`*.moc3`). Loaded once, shared across instances. |
-| **Model** | A runtime instance created from a MOC. Holds live parameter values. |
-| **Parameters** | Named float values that drive deformation (e.g. eye open, head angle). |
-| **Parts** | Groupings of drawables with their own opacity and color. |
-| **Drawables** | Individual mesh pieces rendered each frame. |
-| **Motion** | Animation clip loaded from `*.motion3.json`; applies parameter keyframes. |
-| **Expression** | A static parameter overlay loaded from an expression JSON. |
-| **Physics** | Pendulum-based secondary animation loaded from `*physics3.json`. |
-| **Renderer** | Platform backend that submits drawables to the GPU. |
+Think of this project as an **actor**, not a director.
 
----
-
-## Platform Support
-
-| Platform | Graphics APIs | Architecture |
+| Role | System | Responsibilities |
 |---|---|---|
-| Windows | D3D9, D3D11, OpenGL ES 2.0 | x86, x86_64 |
-| macOS | Metal, OpenGL | x86_64, ARM64 |
-| iOS | Metal | ARM64, x86_64 (sim) |
-| Android | OpenGL ES 2.0 | ARM64, x86, x86_64 |
-| Linux | OpenGL ES 2.0 | x86_64, ARM64 (experimental) |
-| UWP | D3D11 | ARM, ARM64, x64, x86 |
-| HarmonyOS | OpenGL ES 2.0 | ARM64, ARMv7, x86_64 |
+| **Director** | External orchestrator (`video_agent`) | Script, voice-over audio, Rhubarb lipsync analysis, emotional cues, timing |
+| **Actor** | This project | Interpret those directions and render the performance to video |
+
+The orchestrating system decides *what* happens and provides a fully-specified manifest. This system renders it — no analysis or inference of its own.
+
+---
+
+## Inputs
+
+The renderer accepts a **scene manifest** — a structured JSON description of a single continuous take:
+
+```json
+{
+  "schema_version": "1.0",
+  "model": {
+    "id": "shiori",
+    "path": "assets/models/shiori/shiori.model3.json"
+  },
+  "audio": "path/to/voiceover.wav",
+  "output": "path/to/output.mp4",
+  "resolution": [1080, 1920],
+  "fps": 30,
+  "background": "transparent",
+  "lipsync": [
+    { "time": 0.00, "mouth_shape": "X" },
+    { "time": 0.15, "mouth_shape": "C" },
+    { "time": 0.29, "mouth_shape": "B" }
+  ],
+  "cues": [
+    { "time": 0.0, "emotion": "neutral" },
+    { "time": 1.2, "emotion": "happy" },
+    { "time": 3.5, "reaction": "nod" }
+  ]
+}
+```
+
+| Field | Description |
+|---|---|
+| `schema_version` | Must be `"1.0"` |
+| `model.id` | Model ID looked up in `assets/models/registry.json` |
+| `model.path` | Fallback path to `.model3.json` if `id` is not in the registry |
+| `audio` | Voice-over WAV file — mixed into the output video |
+| `output` | Destination video file (`.mp4` or `.mov`) |
+| `resolution` | `[width, height]` in pixels |
+| `fps` | Target frame rate |
+| `background` | `"transparent"`, `"#RRGGBB"` color, or path to an image |
+| `lipsync` | Pre-computed Rhubarb mouth-shape keyframes (generated upstream by `video_agent`) |
+| `cues` | Timed directives — emotions, reactions, gaze, and head angles |
+
+---
+
+## Outputs
+
+For each scene, the renderer writes two files to the output directory:
+
+| File | Description |
+|---|---|
+| `scene.mov` / `scene.mp4` | Rendered video with lip sync, expressions, physics, and audio mixed in |
+| `scene.log` | Full render log — all INFO, WARN, and ERROR lines for that take |
+
+**Container selection:**
+- `"background": "transparent"` → ProRes 4444 in `.mov` (RGBA alpha channel)
+- Opaque background → H.264 in `.mp4`
+- If the manifest specifies `.mp4` with a transparent background, the renderer auto-corrects to `.mov` and emits a `WARN`.
+
+The log file is the primary feedback channel back to the director. `WARN` lines indicate silent failures — directions the renderer received but could not fully execute (e.g. an emotion name not defined on the model).
+
+---
+
+## What This System Does NOT Do
+
+- Generate scripts or dialogue
+- Generate or process audio (TTS, voice cloning, etc.)
+- Analyze audio for lip sync — Rhubarb keyframes are provided in the manifest
+- Decide which emotions or reactions to use
+- Orchestrate multi-scene sequences
+
+All of that belongs to the upstream director system.
+
+---
+
+## Architecture
+
+```
+[Director System / video_agent]
+      │
+      │  scene manifest (JSON) + pre-computed Rhubarb lipsync
+      ▼
+┌─────────────────────────────────┐
+│         Renderer CLI            │
+│                                 │
+│  ┌──────────────┐  ┌──────────┐ │
+│  │  Lipsync     │  │  Cue     │ │
+│  │  Sequencer   │  │ Sequencer│ │
+│  │ (keyframes)  │  │ (timed)  │ │
+│  └──────┬───────┘  └────┬─────┘ │
+│         │               │       │
+│         └───────┬───────┘       │
+│                 ▼               │
+│  ┌──────────────────────────┐   │
+│  │   Live2D Model Engine    │   │
+│  │  (Cubism Native SDK 5)   │   │
+│  └────────────┬─────────────┘   │
+│               │                 │
+│               ▼                 │
+│  ┌──────────────────────────┐   │
+│  │   Offscreen Renderer     │   │
+│  │   (D3D11, no window)     │   │
+│  └────────────┬─────────────┘   │
+│               │                 │
+│               ▼                 │
+│  ┌──────────────────────────┐   │
+│  │    Video Encoder         │   │
+│  │    (FFmpeg child proc)   │   │
+│  └──────────────────────────┘   │
+└─────────────────────────────────┘
+      │
+      │  scene.mov + scene.log
+      ▼
+[Director System / Final Delivery]
+```
+
+---
+
+## CLI Usage
+
+```bash
+# Render a single take
+live2d-render --scene scene.json
+
+# Override output path
+live2d-render --scene scene.json --output take_02.mp4
+
+# Render with transparent background (forces .mov container)
+live2d-render --scene scene.json --transparent
+
+# Set log verbosity (error | warn | info | debug)
+live2d-render --scene scene.json --log-level debug
+```
+
+Exit codes:
+
+| Code | Meaning |
+|---|---|
+| `0` | Success |
+| `1` | Bad arguments |
+| `2` | Manifest parse/validation error |
+| `3` | Asset not found (model, audio) |
+| `4` | Render error |
+| `5` | Output/encode error |
+
+---
+
+## Cue Types
+
+Cues are the primary interface between the director and this system. The supported cue types define the actor's vocabulary.
+
+| Cue type | Description | Example value |
+|---|---|---|
+| `emotion` | Facial expression — must be an alias defined in the model registry | `"happy"`, `"sad"`, `"neutral"` |
+| `reaction` | Short motion clip — must be an alias defined in the model registry | `"tap"`, `"idle"` |
+| `gaze` | Eye direction override | `{ "x": 0.5, "y": -0.2 }` |
+| `head` | Head angle override | `{ "yaw": 10, "pitch": -5, "roll": 0 }` |
+
+Valid `emotion` and `reaction` values are defined per-model in the registry (see below). Any name not in the registry produces a `WARN` in the log and is silently skipped — the renderer never exposes raw model-internal names (e.g. `F01`, `TapBody`) to the director.
+
+---
+
+## Model Registry
+
+`assets/models/registry.json` is the single source of truth for:
+- Which models are available and where their `.model3.json` files are
+- The complete **cue vocabulary** the director is allowed to use for each model
+
+Each entry maps semantic alias names (used in manifests) to raw model-internal names (Live2D expression/motion group names). The director only ever sees and uses the alias names.
+
+```json
+{
+  "id": "shiori",
+  "path": "cubism/Samples/Resources/Haru/Haru.model3.json",
+  "emotions": {
+    "neutral":     "F01",
+    "happy":       "F02",
+    "sad":         "F03",
+    "surprised":   "F04",
+    "angry":       "F05",
+    "embarrassed": "F06",
+    "troubled":    "F07",
+    "shy":         "F08"
+  },
+  "reactions": {
+    "idle": "Idle",
+    "tap":  "TapBody"
+  }
+}
+```
+
+### Discovering the vocabulary
+
+Before authoring manifests, the director queries the renderer for a model's available cues:
+
+```bash
+live2d-render --inspect --model shiori
+```
+
+```json
+{
+  "model": "shiori",
+  "path": "cubism/Samples/Resources/Haru/Haru.model3.json",
+  "emotions": ["angry", "embarrassed", "happy", "neutral", "sad", "shy", "surprised", "troubled"],
+  "reactions": ["idle", "tap"]
+}
+```
+
+The output lists only the alias names — these are the exact strings the director may use in `"emotion"` and `"reaction"` cue fields.
+
+### Adding a new model
+
+Not every model is compatible with this renderer. A model must have facial expressions, populated LipSync/EyeBlink parameter groups, and a named Idle motion group before it can be registered.
+
+All registry `id` values must be lowercase ASCII (e.g. `"sparkle"`, `"shiori"`). If the model's directory or files use non-ASCII names (e.g. `魔女/魔女.model3.json`), the human must supply a plain ASCII identifier before onboarding can proceed.
+
+See [docs/model-onboarding.md](docs/model-onboarding.md) for the full evaluation checklist — including pass/fail criteria, the test-render workflow, and the rejection log for models that were evaluated and declined.
+
+---
+
+## Development Stack
+
+| Component | Technology |
+|---|---|
+| Model rendering | Live2D Cubism Native SDK 5-r.4.1 |
+| Graphics backend | D3D11 (headless, no window or swap chain) |
+| Lip sync | Pre-computed Rhubarb keyframes → `ParamMouthOpenY` / `ParamMouthForm` |
+| Video encoding | FFmpeg (child process, frames piped via stdin) |
+| Build system | CMake 3.16+ + Visual Studio 2022 |
+| Platform | Windows 10/11 |
 
 ---
 
 ## Building
 
-The SDK uses CMake. Each sample platform has a `proj.XXX.cmake/` subdirectory with batch scripts.
-
-**Windows (D3D11 example):**
-```bat
-cd Samples/D3D11/Demo/proj.d3d11.cmake/script
-proj_msvc2022.bat          # generates Visual Studio solution
-nmake_msvc2022.bat         # builds from command line
+```bash
+cmake -S . -B build
+cmake --build build --config Release
+# binary: build/Release/live2d-render.exe
 ```
 
-**OpenGL (cross-platform):**
-```bat
-cd Samples/OpenGL/Demo/proj.win.cmake/script
-proj_msvc2022.bat
-```
-
-Requirements: CMake 3.10+, Visual Studio 2015–2022 (Windows), Xcode (macOS), Android NDK (Android).
+Run from the project root — shader and asset paths are relative to the working directory.
 
 ---
 
-## End-to-End Usage
+## API Contract
 
-### 1 — Initialize the Framework
-
-Implement `ICubismAllocator` to provide memory management, then start up once at application launch.
-
-```cpp
-#include "CubismFramework.hpp"
-
-class MyAllocator : public Csm::ICubismAllocator {
-    void* Allocate(const Csm::csmSizeType size) override { return malloc(size); }
-    void  Deallocate(void* memory) override { free(memory); }
-    void* AllocateAligned(const Csm::csmSizeType size, const Csm::csmUint32 alignment) override {
-        return _aligned_malloc(size, alignment);
-    }
-    void  DeallocateAligned(void* alignedMemory) override { _aligned_free(alignedMemory); }
-};
-
-MyAllocator allocator;
-Csm::CubismFramework::Option option;
-option.LogFunction   = MyLogCallback;        // optional; can be nullptr
-option.LoggingLevel  = Csm::CubismFramework::Option::LogLevel_Verbose;
-
-Csm::CubismFramework::StartUp(&allocator, &option);
-Csm::CubismFramework::Initialize();
-```
-
-### 2 — Load a Model
-
-```cpp
-#include "Model/CubismMoc.hpp"
-#include "Model/CubismModel.hpp"
-
-// Read raw bytes from disk (platform-specific)
-Csm::csmSizeInt mocSize;
-Csm::csmByte*   mocBytes = LoadFile("Haru/Haru.moc3", &mocSize);
-
-Csm::CubismMoc*   moc   = Csm::CubismMoc::Create(mocBytes, mocSize);
-Csm::CubismModel* model = moc->CreateModel();
-
-free(mocBytes); // bytes are no longer needed after Create
-```
-
-### 3 — Parse Model Settings (model3.json)
-
-`model3.json` is the manifest that lists textures, motions, expressions, physics, etc.
-
-```cpp
-#include "Model/CubismModelSettingJson.hpp"
-
-Csm::csmSizeInt settingSize;
-Csm::csmByte*   settingBytes = LoadFile("Haru/Haru.model3.json", &settingSize);
-
-Csm::ICubismModelSetting* setting =
-    new Csm::CubismModelSettingJson(settingBytes, settingSize);
-
-free(settingBytes);
-
-// Query the manifest
-const Csm::csmChar* mocFile     = setting->GetModelFileName();      // "Haru.moc3"
-Csm::csmInt32       texCount    = setting->GetTextureCount();
-const Csm::csmChar* tex0        = setting->GetTextureFileName(0);   // "Haru.2048/texture_00.png"
-Csm::csmInt32       motionGroups = setting->GetMotionGroupCount();
-```
-
-### 4 — Create a Platform Renderer
-
-Choose the renderer that matches your graphics API. All share the same abstract interface.
-
-```cpp
-// DirectX 11
-#include "Rendering/D3D11/CubismRenderer_D3D11.hpp"
-Csm::Rendering::CubismRenderer_D3D11::InitializeConstantSettings(device, context);
-Csm::Rendering::CubismRenderer* renderer = Csm::Rendering::CubismRenderer::Create();
-renderer->Initialize(model);
-
-// OpenGL ES 2.0
-#include "Rendering/OpenGL/CubismRenderer_OpenGLES2.hpp"
-Csm::Rendering::CubismRenderer* renderer = Csm::Rendering::CubismRenderer::Create();
-renderer->Initialize(model);
-```
-
-Textures must be uploaded to the GPU and registered before the first `DrawModel()` call:
-
-```cpp
-// D3D11 example
-auto* d3dRenderer =
-    static_cast<Csm::Rendering::CubismRenderer_D3D11*>(renderer);
-d3dRenderer->BindTexture(textureIndex, d3d11ShaderResourceView);
-```
-
-### 5 — Load Motions and Expressions
-
-```cpp
-#include "Motion/CubismMotion.hpp"
-#include "Motion/CubismMotionManager.hpp"
-#include "Motion/CubismExpressionMotion.hpp"
-
-Csm::CubismMotionManager* motionManager    = new Csm::CubismMotionManager();
-Csm::CubismMotionManager* expressionManager = new Csm::CubismMotionManager();
-
-// Load a motion clip
-Csm::csmSizeInt motSize;
-Csm::csmByte*   motBytes = LoadFile("motions/idle_01.motion3.json", &motSize);
-
-auto* motion = static_cast<Csm::CubismMotion*>(
-    Csm::CubismMotion::Create(motBytes, motSize));
-motion->SetLoop(true);
-free(motBytes);
-
-// Load an expression
-Csm::csmSizeInt exprSize;
-Csm::csmByte*   exprBytes = LoadFile("expressions/f01.exp3.json", &exprSize);
-auto* expression = Csm::CubismExpressionMotion::Create(exprBytes, exprSize);
-free(exprBytes);
-```
-
-### 6 — Load Physics
-
-```cpp
-#include "Physics/CubismPhysics.hpp"
-
-Csm::csmSizeInt physSize;
-Csm::csmByte*   physBytes = LoadFile("Haru.physics3.json", &physSize);
-Csm::CubismPhysics* physics = Csm::CubismPhysics::Create(physBytes, physSize);
-free(physBytes);
-```
-
-### 7 — Load Eye Blink / Breath Effects
-
-```cpp
-#include "Effect/CubismEyeBlink.hpp"
-#include "Effect/CubismBreath.hpp"
-
-Csm::CubismEyeBlink* eyeBlink = Csm::CubismEyeBlink::Create(setting);
-Csm::CubismBreath*   breath   = Csm::CubismBreath::Create();
-
-// Optional: configure breath parameters manually
-Csm::csmVector<Csm::CubismBreath::BreathParameterData> params;
-params.PushBack({
-    Csm::CubismFramework::GetIdManager()->GetId("ParamBreath"),
-    0.0f, 0.5f, 3.0f, 0.5f
-});
-breath->SetParameters(params);
-```
+The full interface contract — scene manifest schema, lipsync vocabulary, cue types, model selection, and CLI specification — is defined in [docs/live2d-avatar-api-contract.md](docs/live2d-avatar-api-contract.md).
 
 ---
 
-## The Main Loop
+## Related
 
-Call this every frame, passing the elapsed time in seconds.
-
-```cpp
-void Update(float deltaTime)
-{
-    // --- Restore parameter defaults before applying any layer ---
-    model->LoadParameters();  // save/restore idiom used in samples
-
-    // --- Apply animation layers ---
-    motionManager->UpdateMotion(model, deltaTime);     // keyframe motion
-    expressionManager->UpdateMotion(model, deltaTime); // expression overlay
-
-    model->SaveParameters();
-
-    // --- Apply automatic effects ---
-    eyeBlink->UpdateParameters(model, deltaTime);
-    breath->UpdateParameters(model, deltaTime);
-
-    // --- Apply physics-based secondary animation ---
-    physics->Evaluate(model, deltaTime);
-
-    // --- Flush to Core ---
-    model->Update();
-}
-
-void Draw(Csm::CubismMatrix44& mvpMatrix)
-{
-    // D3D11: wrap the frame
-    Csm::Rendering::CubismRenderer_D3D11::StartFrame(device, context, width, height);
-
-    renderer->SetMvpMatrix(&mvpMatrix);
-    renderer->DrawModel();
-
-    Csm::Rendering::CubismRenderer_D3D11::EndFrame(device);
-}
-```
-
----
-
-## Manipulating Parameters Directly
-
-Parameters are identified by `CubismIdHandle` (string-interned at startup).
-
-```cpp
-Csm::CubismIdHandle paramHeadX =
-    Csm::CubismFramework::GetIdManager()->GetId("ParamAngleX");
-
-// Set absolute value (clamped to [min, max] unless repeat mode)
-model->SetParameterValue(paramHeadX, 15.0f);
-
-// Add a delta (useful for layered animations)
-model->AddParameterValue(paramHeadX, 5.0f);
-
-// Blend toward a value (weight 0.0–1.0)
-model->SetParameterValue(paramHeadX, 15.0f, 0.5f);
-
-// Read current value
-float currentVal = model->GetParameterValue(paramHeadX);
-
-// Query constraints
-float minVal  = model->GetParameterMinimumValue(paramHeadX);
-float maxVal  = model->GetParameterMaximumValue(paramHeadX);
-float defVal  = model->GetParameterDefaultValue(paramHeadX);
-```
-
-### Common Standard Parameter IDs
-
-| ID String | Description |
-|---|---|
-| `ParamAngleX` | Head yaw (left/right) |
-| `ParamAngleY` | Head pitch (up/down) |
-| `ParamAngleZ` | Head roll (tilt) |
-| `ParamEyeLOpen` | Left eye open amount |
-| `ParamEyeROpen` | Right eye open amount |
-| `ParamEyeBallX` | Eye gaze horizontal |
-| `ParamEyeBallY` | Eye gaze vertical |
-| `ParamMouthOpenY` | Mouth open |
-| `ParamBreath` | Breathing cycle |
-| `ParamBodyAngleX` | Body lean |
-
----
-
-## Controlling Motions
-
-```cpp
-// Play a motion (priority 1=idle, 2=normal, 3=force)
-Csm::CubismMotionQueueEntryHandle handle =
-    motionManager->StartMotionPriority(motion, /*autoDelete=*/false, /*priority=*/2);
-
-// Check if still playing
-bool isFinished = motionManager->IsFinished();
-
-// Stop all motions
-motionManager->StopAllMotions();
-```
-
----
-
-## Hit Testing
-
-Use drawable hit areas defined in `model3.json` to respond to touches.
-
-```cpp
-// ICubismModelSetting provides hit area names and drawable IDs
-Csm::csmInt32 hitCount = setting->GetHitAreasCount();
-for (Csm::csmInt32 i = 0; i < hitCount; i++) {
-    const Csm::csmChar* areaName  = setting->GetHitAreaName(i);
-    const Csm::csmChar* drawableId = setting->GetHitAreaId(i);
-
-    Csm::CubismIdHandle id = Csm::CubismFramework::GetIdManager()->GetId(drawableId);
-    Csm::csmInt32 drawableIndex = model->GetDrawableIndex(id);
-
-    // Get bounding box from current vertex positions
-    const Csm::csmFloat32* vertices = model->GetDrawableVertices(drawableIndex);
-    Csm::csmInt32 vertexCount       = model->GetDrawableVertexCount(drawableIndex);
-    // ... compute AABB and test point (touchX, touchY)
-}
-```
-
----
-
-## Clipping Masks
-
-By default, up to 36 mask groups are batched into a single offscreen texture (fast). For complex models, switch to high-precision mode:
-
-```cpp
-renderer->UseHighPrecisionMask(true);  // render mask per-drawable (higher quality, slower)
-```
-
----
-
-## Part Colors and Opacity
-
-Individual parts can have multiply/screen color tints applied on top of the model's animation.
-
-```cpp
-Csm::CubismIdHandle partId =
-    Csm::CubismFramework::GetIdManager()->GetId("PartBody");
-
-// Opacity
-model->SetPartOpacity(partId, 0.8f);
-
-// Tint colors (RGBA, 0.0–1.0)
-Csm::CubismTextureColor multiplyColor(1.0f, 0.8f, 0.8f, 1.0f);
-model->SetPartMultiplyColor(partId, multiplyColor);
-
-Csm::CubismTextureColor screenColor(0.2f, 0.0f, 0.0f, 0.0f);
-model->SetPartScreenColor(partId, screenColor);
-```
-
----
-
-## Shutdown and Cleanup
-
-```cpp
-// Destroy objects in reverse order
-Csm::CubismPhysics::Delete(physics);
-delete eyeBlink;
-delete breath;
-delete motionManager;
-delete expressionManager;
-delete motion;
-delete expression;
-
-Csm::Rendering::CubismRenderer::Delete(renderer);
-Csm::CubismMoc::Delete(moc);  // also destroys model
-
-delete setting;
-
-Csm::CubismFramework::Dispose();
-Csm::CubismFramework::CleanUp();
-```
-
----
-
-## Key Files Quick Reference
-
-| File | Purpose |
-|---|---|
-| `Core/include/Live2DCubismCore.h` | Low-level C API (csmMoc, csmModel, csmUpdateModel, etc.) |
-| `Framework/src/CubismFramework.hpp` | SDK lifecycle: StartUp / Initialize / Dispose |
-| `Framework/src/Model/CubismMoc.hpp` | Load `.moc3`, create model instances |
-| `Framework/src/Model/CubismModel.hpp` | Parameter / part / drawable access and manipulation |
-| `Framework/src/Model/CubismModelSettingJson.hpp` | Parse `model3.json` |
-| `Framework/src/Rendering/CubismRenderer.hpp` | Abstract renderer (SetMvpMatrix, DrawModel) |
-| `Framework/src/Motion/CubismMotion.hpp` | Animation clip loading and playback |
-| `Framework/src/Motion/CubismMotionManager.hpp` | Priority-based motion queue |
-| `Framework/src/Motion/CubismExpressionMotion.hpp` | Expression overlays |
-| `Framework/src/Physics/CubismPhysics.hpp` | Physics-based secondary animation |
-| `Framework/src/Effect/CubismEyeBlink.hpp` | Automatic blink effect |
-| `Framework/src/Effect/CubismBreath.hpp` | Breathing effect |
-| `Samples/D3D11/Demo/` | Full Windows reference application |
-| `Samples/OpenGL/Demo/` | Full cross-platform reference application |
-
----
-
-## See Also
-
-- [Live2D Cubism SDK for Native official documentation](https://docs.live2d.com/cubism-sdk-manual/cubism-sdk-for-native/)
-- `Samples/D3D11/Demo/src/LAppModel.cpp` — complete model loading and update example
-- `Samples/D3D11/Demo/src/LAppLive2DManager.cpp` — scene management and rendering loop
+- [SDK_README.md](SDK_README.md) — Live2D Cubism SDK reference (internal rendering layer)
+- [docs/cli_design.md](docs/cli_design.md) — Component design and data flow
