@@ -1,0 +1,227 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{0B62AFAC-378A-3D44-84F3-AB69A72AFE6C}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
+    <Platform>x64</Platform>
+    <ProjectName>Demo</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\build\vs2022_x64_mt\bin\Demo\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Demo.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Demo</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateManifest>
+    <LocalDebuggerWorkingDirectory Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/Demo/proj.d3d11.cmake/build/vs2022_x64_mt/bin/Demo/$(Configuration)</LocalDebuggerWorkingDirectory>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\build\vs2022_x64_mt\bin\Demo\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Demo.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Demo</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateManifest>
+    <LocalDebuggerWorkingDirectory Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/Demo/proj.d3d11.cmake/build/vs2022_x64_mt/bin/Demo/$(Configuration)</LocalDebuggerWorkingDirectory>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\HongM\Code Projects\live2d\cubism\Samples\Common;C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src;C:\Users\HongM\Code Projects\live2d\cubism\Framework\src;C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\..\..\..\..\Samples\D3D11\thirdParty\DirectXTK\Inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/Demo/proj.d3d11.cmake/../../../../Core/include"</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\HongM\Code Projects\live2d\cubism\Samples\Common;C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src;C:\Users\HongM\Code Projects\live2d\cubism\Framework\src;C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\..\..\..\..\Samples\D3D11\thirdParty\DirectXTK\Inc;C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\..\..\..\..\Core\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\HongM\Code Projects\live2d\cubism\Samples\Common;C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src;C:\Users\HongM\Code Projects\live2d\cubism\Framework\src;C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\..\..\..\..\Samples\D3D11\thirdParty\DirectXTK\Inc;C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\..\..\..\..\Core\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <PostBuildEvent>
+      <Message></Message>
+      <Command>setlocal
+C:\Strawberry\c\bin\cmake.exe -E copy_directory "C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/Demo/proj.d3d11.cmake/../../../../Samples/Resources" "C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/Demo/proj.d3d11.cmake/build/vs2022_x64_mt/bin/Demo/Debug/Resources"
+if %errorlevel% neq 0 goto :cmEnd
+C:\Strawberry\c\bin\cmake.exe -E copy_directory "C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/Demo/proj.d3d11.cmake/../../../../Samples/D3D11/Shaders" "C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/Demo/proj.d3d11.cmake/build/vs2022_x64_mt/bin/Demo/Debug/SampleShaders"
+if %errorlevel% neq 0 goto :cmEnd
+C:\Strawberry\c\bin\cmake.exe -E copy_directory "C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/Demo/proj.d3d11.cmake/../../../../Framework/src/Rendering/D3D11/Shaders" "C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/Demo/proj.d3d11.cmake/build/vs2022_x64_mt/bin/Demo/Debug/FrameworkShaders"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+    </PostBuildEvent>
+    <Link>
+      <AdditionalDependencies>Framework\Debug\Framework.lib;-NODEFAULTLIB:libcmtd.lib;C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\..\..\..\..\Core\lib\windows\x86_64\143\Live2DCubismCore_MTd.lib;C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\..\..\..\..\Samples\D3D11\thirdParty\DirectXTK\Bin\Desktop_2022\x64\Debug\DirectXTK.lib;d3d11.lib;d3dcompiler.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/Demo/proj.d3d11.cmake/build/vs2022_x64_mt/Debug/Demo.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/Demo/proj.d3d11.cmake/build/vs2022_x64_mt/bin/Demo/Debug/Demo.pdb</ProgramDataBaseFile>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\HongM\Code Projects\live2d\cubism\Samples\Common;C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src;C:\Users\HongM\Code Projects\live2d\cubism\Framework\src;C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\..\..\..\..\Samples\D3D11\thirdParty\DirectXTK\Inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /external:I "C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/Demo/proj.d3d11.cmake/../../../../Core/include"</AdditionalOptions>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR="Release"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\HongM\Code Projects\live2d\cubism\Samples\Common;C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src;C:\Users\HongM\Code Projects\live2d\cubism\Framework\src;C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\..\..\..\..\Samples\D3D11\thirdParty\DirectXTK\Inc;C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\..\..\..\..\Core\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\HongM\Code Projects\live2d\cubism\Samples\Common;C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src;C:\Users\HongM\Code Projects\live2d\cubism\Framework\src;C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\..\..\..\..\Samples\D3D11\thirdParty\DirectXTK\Inc;C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\..\..\..\..\Core\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <PostBuildEvent>
+      <Message></Message>
+      <Command>setlocal
+C:\Strawberry\c\bin\cmake.exe -E copy_directory "C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/Demo/proj.d3d11.cmake/../../../../Samples/Resources" "C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/Demo/proj.d3d11.cmake/build/vs2022_x64_mt/bin/Demo/Release/Resources"
+if %errorlevel% neq 0 goto :cmEnd
+C:\Strawberry\c\bin\cmake.exe -E copy_directory "C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/Demo/proj.d3d11.cmake/../../../../Samples/D3D11/Shaders" "C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/Demo/proj.d3d11.cmake/build/vs2022_x64_mt/bin/Demo/Release/SampleShaders"
+if %errorlevel% neq 0 goto :cmEnd
+C:\Strawberry\c\bin\cmake.exe -E copy_directory "C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/Demo/proj.d3d11.cmake/../../../../Framework/src/Rendering/D3D11/Shaders" "C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/Demo/proj.d3d11.cmake/build/vs2022_x64_mt/bin/Demo/Release/FrameworkShaders"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+    </PostBuildEvent>
+    <Link>
+      <AdditionalDependencies>Framework\Release\Framework.lib;-NODEFAULTLIB:libcmt.lib;C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\..\..\..\..\Core\lib\windows\x86_64\143\Live2DCubismCore_MT.lib;C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\..\..\..\..\Samples\D3D11\thirdParty\DirectXTK\Bin\Desktop_2022\x64\Release\DirectXTK.lib;d3d11.lib;d3dcompiler.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/Demo/proj.d3d11.cmake/build/vs2022_x64_mt/Release/Demo.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/Demo/proj.d3d11.cmake/build/vs2022_x64_mt/bin/Demo/Release/Demo.pdb</ProgramDataBaseFile>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\Common\CubismSampleViewMatrix_Common.cpp" />
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\Common\CubismSampleViewMatrix_Common.hpp" />
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\Common\LAppAllocator_Common.cpp" />
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\Common\LAppAllocator_Common.hpp" />
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\Common\LAppModel_Common.cpp" />
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\Common\LAppModel_Common.hpp" />
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\Common\LAppSprite_Common.cpp" />
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\Common\LAppSprite_Common.hpp" />
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\Common\LAppTextureManager_Common.cpp" />
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\Common\LAppTextureManager_Common.hpp" />
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\Common\LAppView_Common.cpp" />
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\Common\LAppView_Common.hpp" />
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\Common\MouseActionManager_Common.cpp" />
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\Common\MouseActionManager_Common.hpp" />
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\Common\TouchManager_Common.cpp" />
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\Common\TouchManager_Common.hpp" />
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src\LAppDefine.cpp" />
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src\LAppDefine.hpp" />
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src\LAppPal.cpp" />
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src\LAppPal.hpp" />
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src\mainMinimum.cpp" />
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src\CubismSprite.cpp" />
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src\CubismSprite.hpp" />
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src\CubismSpriteShader.cpp" />
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src\CubismSpriteShader.hpp" />
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src\CubismTextureManager.cpp" />
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src\CubismTextureManager.hpp" />
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src\CubismUserModelExtend.cpp" />
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src\CubismUserModelExtend.hpp" />
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src\CubismDirectXView.cpp" />
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src\CubismDirectXView.hpp" />
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src\CubismDirectXRenderer.cpp" />
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\src\CubismDirectXRenderer.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:\Users\HongM\Code Projects\live2d\cubism\Samples\D3D11\Demo\proj.d3d11.cmake\build\vs2022_x64_mt\Framework\Framework.vcxproj">
+      <Project>{5916AF5A-60E3-3EDE-B269-AE7674D16771}</Project>
+      <Name>Framework</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

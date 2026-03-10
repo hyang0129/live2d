@@ -1,0 +1,9 @@
+C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/thirdParty/DirectXTK/cmake_build_x64/CMakeFiles/DirectXTK.dir
+C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/thirdParty/DirectXTK/cmake_build_x64/CMakeFiles/Experimental.dir
+C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/thirdParty/DirectXTK/cmake_build_x64/CMakeFiles/Nightly.dir
+C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/thirdParty/DirectXTK/cmake_build_x64/CMakeFiles/Continuous.dir
+C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/thirdParty/DirectXTK/cmake_build_x64/CMakeFiles/NightlyMemoryCheck.dir
+C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/thirdParty/DirectXTK/cmake_build_x64/CMakeFiles/RUN_TESTS.dir
+C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/thirdParty/DirectXTK/cmake_build_x64/CMakeFiles/INSTALL.dir
+C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/thirdParty/DirectXTK/cmake_build_x64/CMakeFiles/ALL_BUILD.dir
+C:/Users/HongM/Code Projects/live2d/cubism/Samples/D3D11/thirdParty/DirectXTK/cmake_build_x64/CMakeFiles/ZERO_CHECK.dir

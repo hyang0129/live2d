@@ -1,0 +1,297 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\CubismCdiJson.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\CubismDefaultParameterId.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\CubismFramework.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\CubismModelSettingJson.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Effect\CubismBreath.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Effect\CubismEyeBlink.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Effect\CubismPose.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Id\CubismId.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Id\CubismIdManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Math\CubismMath.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Math\CubismMatrix44.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Math\CubismModelMatrix.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Math\CubismTargetPoint.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Math\CubismVector2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Math\CubismViewMatrix.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Model\CubismMoc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Model\CubismModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Model\CubismModelUserData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Model\CubismModelUserDataJson.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Model\CubismUserModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Motion\ACubismMotion.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Motion\CubismExpressionMotion.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Motion\CubismExpressionMotionManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Motion\CubismMotion.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Motion\CubismMotionJson.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Motion\CubismMotionManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Motion\CubismMotionQueueEntry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Motion\CubismMotionQueueManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Physics\CubismPhysics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Physics\CubismPhysicsJson.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Rendering\CubismRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Rendering\D3D11\CubismOffscreenSurface_D3D11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Rendering\D3D11\CubismRenderer_D3D11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Rendering\D3D11\CubismRenderState_D3D11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Rendering\D3D11\CubismShader_D3D11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Type\csmRectF.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Type\csmString.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Utils\CubismDebug.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Utils\CubismJson.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Utils\CubismString.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\CubismCdiJson.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\CubismDefaultParameterId.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\CubismFramework.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\CubismFrameworkConfig.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\CubismModelSettingJson.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\CubismJsonHolder.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\ICubismAllocator.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\ICubismModelSetting.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Live2DCubismCore.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Effect\CubismBreath.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Effect\CubismEyeBlink.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Effect\CubismPose.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Id\CubismId.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Id\CubismIdManager.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Math\CubismMath.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Math\CubismMatrix44.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Math\CubismModelMatrix.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Math\CubismTargetPoint.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Math\CubismVector2.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Math\CubismViewMatrix.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Model\CubismMoc.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Model\CubismModel.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Model\CubismModelUserData.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Model\CubismModelUserDataJson.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Model\CubismUserModel.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Motion\ACubismMotion.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Motion\CubismExpressionMotion.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Motion\CubismExpressionMotionManager.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Motion\CubismMotion.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Motion\CubismMotionInternal.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Motion\CubismMotionJson.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Motion\CubismMotionManager.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Motion\CubismMotionQueueEntry.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Motion\CubismMotionQueueManager.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Physics\CubismPhysics.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Physics\CubismPhysicsInternal.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Physics\CubismPhysicsJson.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Rendering\CubismRenderer.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Rendering\CubismClippingManager.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Rendering\D3D11\CubismNativeInclude_D3D11.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Rendering\D3D11\CubismOffscreenSurface_D3D11.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Rendering\D3D11\CubismRenderer_D3D11.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Rendering\D3D11\CubismRenderState_D3D11.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Rendering\D3D11\CubismShader_D3D11.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Rendering\D3D11\CubismType_D3D11.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Type\csmMap.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Type\csmRectF.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Type\csmString.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Type\csmVector.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Type\CubismBasicType.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Utils\CubismDebug.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Utils\CubismJson.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Utils\CubismString.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\HongM\Code Projects\live2d\cubism\Framework\src\Rendering\CubismClippingManager.tpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{897D2A8B-C211-3EAB-88F1-CADD72A76E17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{51DE5F1D-5317-385F-BC84-06DD27F957F4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
