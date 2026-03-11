@@ -36,6 +36,10 @@
     "source=live2d-build-cache,target=${containerWorkspaceFolder}/build,type=volume"
   ],
 
+  // Runs on the HOST before container start — cleans stale VS Code Server
+  // installs from Docker Desktop WSL root and captures git identity.
+  "initializeCommand": ".devcontainer\\initialize.cmd",
+
   "postCreateCommand": ".devcontainer/post-create.sh",
 
   "remoteUser": "vscode"

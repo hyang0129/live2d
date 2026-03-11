@@ -42,6 +42,9 @@ results/
 # Logs
 *.log
 
+# Devcontainer temp files
+.devcontainer/.gituser.tmp
+
 # OS artifacts
 Thumbs.db
 .DS_Store
