@@ -61,7 +61,7 @@ bool FfmpegEncoder::Open(const std::string& output_path,
         cmd << " -i \"" << audio_path << "\"";
 
     if (use_av1)
-        cmd << " -c:v libaom-av1 -pix_fmt yuva420p -cpu-used 4 -crf 30";
+        cmd << " -c:v libvpx-vp9 -pix_fmt yuva420p -crf 30 -b:v 0";
     else if (use_prores)
         cmd << " -c:v prores_ks -profile:v 4 -pix_fmt yuva444p10le";
     else
@@ -85,7 +85,7 @@ bool FfmpegEncoder::Open(const std::string& output_path,
         return false;
     }
 
-    const char* codec = use_av1 ? "libaom-av1 yuva420p" : use_prores ? "prores_ks yuva444p10le" : "libx264 yuv420p";
+    const char* codec = use_av1 ? "libvpx-vp9 yuva420p" : use_prores ? "prores_ks yuva444p10le" : "libx264 yuv420p";
     Logger::Info("FFmpeg encoder started: %s %dfps → \"%s\"", codec, fps, _tmp_path.c_str());
 
     return true;
