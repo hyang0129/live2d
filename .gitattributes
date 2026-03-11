@@ -1,0 +1,21 @@
+# Default: normalize to LF in repo, check out as-is
+* text=auto
+
+# Windows scripts must stay CRLF
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files — no line-ending processing
+*.lib binary
+*.dll binary
+*.exe binary
+*.a   binary
+*.png binary
+*.jpg binary
+*.wav binary
+*.mp4 binary
+*.moc3 binary
+*.model3.json text eol=lf
+*.exp3.json   text eol=lf
+*.motion3.json text eol=lf
