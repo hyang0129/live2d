@@ -39,6 +39,12 @@ tests/manifests/
 # Results
 results/
 
+# Render server job outputs
+renders/
+
+# Python virtual environment
+.venv/
+
 # Logs
 *.log
 
