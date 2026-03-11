@@ -25,7 +25,8 @@
         "ms-vscode.cmake-tools",
         "ms-vscode.cpptools-extension-pack",
         "twxs.cmake",
-        "vadimcn.vscode-lldb"
+        "vadimcn.vscode-lldb",
+        "anthropic.claude-code"
       ]
     }
   },

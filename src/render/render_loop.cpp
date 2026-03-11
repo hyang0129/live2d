@@ -1,8 +1,11 @@
-#define NOMINMAX
 #include "render_loop.h"
 #include "../cli/logger.h"
 
-#include <Rendering/D3D11/CubismRenderer_D3D11.hpp>
+#ifdef _WIN32
+#  define NOMINMAX
+#  include <Rendering/D3D11/CubismRenderer_D3D11.hpp>
+#endif
+
 #include <Math/CubismMatrix44.hpp>
 #include <Math/CubismViewMatrix.hpp>
 
@@ -13,7 +16,7 @@ using namespace Live2D::Cubism::Framework;
 
 bool RunRenderLoop(const SceneManifest& manifest,
                    Live2DModel&         model,
-                   OffscreenD3D11&      offscreen,
+                   OffscreenRenderer&   offscreen,
                    FfmpegEncoder&       encoder,
                    LipsyncSequencer&    lipsync,
                    CueSequencer&        cues)
@@ -26,8 +29,8 @@ bool RunRenderLoop(const SceneManifest& manifest,
         scene_duration = std::max(scene_duration, kf.time);
     scene_duration += 1.0f;  // 1-second tail
 
-    const int    total_frames = static_cast<int>(scene_duration * manifest.fps);
-    const float  dt           = 1.0f / static_cast<float>(manifest.fps);
+    const int   total_frames = static_cast<int>(scene_duration * manifest.fps);
+    const float dt           = 1.0f / static_cast<float>(manifest.fps);
 
     // View-projection: orthographic to fill [-1,1] on both axes
     CubismMatrix44 projection;
@@ -77,10 +80,12 @@ bool RunRenderLoop(const SceneManifest& manifest,
         model.Update(dt, mouth, cue_state);
 
         // ── Render ───────────────────────────────────────────────────────────
+#ifdef _WIN32
         Rendering::CubismRenderer_D3D11::StartFrame(
             offscreen.Device(), offscreen.Context(),
             static_cast<Csm::csmUint32>(manifest.width),
             static_cast<Csm::csmUint32>(manifest.height));
+#endif
 
         offscreen.BeginFrame();
         offscreen.Clear(cr, cg, cb, ca);
@@ -88,7 +93,9 @@ bool RunRenderLoop(const SceneManifest& manifest,
         CubismMatrix44 vp = projection;
         model.Draw(vp);
 
+#ifdef _WIN32
         Rendering::CubismRenderer_D3D11::EndFrame(offscreen.Device());
+#endif
 
         // ── Readback + encode ────────────────────────────────────────────────
         if (!offscreen.ReadPixels(pixels)) return false;

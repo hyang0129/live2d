@@ -10,7 +10,7 @@ namespace fs = std::filesystem;
 FfmpegEncoder::~FfmpegEncoder()
 {
     if (_pipe) {
-        _pclose(_pipe);
+        pclose(_pipe);
         _pipe = nullptr;
     }
 }
@@ -75,7 +75,11 @@ bool FfmpegEncoder::Open(const std::string& output_path,
     const std::string cmdStr = cmd.str();
     Logger::Debug("FFmpeg command: %s", cmdStr.c_str());
 
-    _pipe = _popen(cmdStr.c_str(), "wb");
+#ifdef _WIN32
+    _pipe = popen(cmdStr.c_str(), "wb");  // binary mode required on Windows
+#else
+    _pipe = popen(cmdStr.c_str(), "w");   // POSIX: only "r" or "w" are valid
+#endif
     if (!_pipe) {
         Logger::Error("Failed to spawn ffmpeg — is ffmpeg in PATH?");
         return false;
@@ -101,7 +105,7 @@ bool FfmpegEncoder::WriteFrame(const std::vector<unsigned char>& rgba)
 bool FfmpegEncoder::Close()
 {
     if (!_pipe) return false;
-    const int exit_code = _pclose(_pipe);
+    const int exit_code = pclose(_pipe);
     _pipe = nullptr;
 
     if (exit_code != 0) {

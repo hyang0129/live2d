@@ -319,7 +319,11 @@ def main() -> None:
         draft_inserted = True
 
     # ── render ────────────────────────────────────────────────────────────
-    renderer = ROOT / "build/Release/live2d-render.exe"
+    import platform
+    if platform.system() == "Windows":
+        renderer = ROOT / "build/Release/live2d-render.exe"
+    else:
+        renderer = ROOT / "build/live2d-render"
     if not renderer.exists():
         print(f"ERROR: renderer not found at {renderer}\n"
               f"       Run: cmake --build build --config Release", file=sys.stderr)

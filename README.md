@@ -117,7 +117,7 @@ All of that belongs to the upstream director system.
 │               ▼                 │
 │  ┌──────────────────────────┐   │
 │  │   Offscreen Renderer     │   │
-│  │   (D3D11, no window)     │   │
+│  │  (D3D11 / EGL+OpenGL)    │   │
 │  └────────────┬─────────────┘   │
 │               │                 │
 │               ▼                 │
@@ -241,23 +241,60 @@ See [docs/model-onboarding.md](docs/model-onboarding.md) for the full evaluation
 | Component | Technology |
 |---|---|
 | Model rendering | Live2D Cubism Native SDK 5-r.4.1 |
-| Graphics backend | D3D11 (headless, no window or swap chain) |
+| Graphics backend | D3D11 (Windows), EGL + OpenGL 3.3 Compatibility (Linux/headless) |
 | Lip sync | Pre-computed Rhubarb keyframes → `ParamMouthOpenY` / `ParamMouthForm` |
 | Video encoding | FFmpeg (child process, frames piped via stdin) |
-| Build system | CMake 3.16+ + Visual Studio 2022 |
-| Platform | Windows 10/11 |
+| Build system | CMake 3.22+ with presets |
+| Platforms | Windows 10/11 (D3D11), Linux x86-64 (EGL/Mesa headless) |
 
 ---
 
 ## Building
 
+**Windows:**
 ```bash
-cmake -S . -B build
-cmake --build build --config Release
+cmake --preset windows
+cmake --build --preset windows
 # binary: build/Release/live2d-render.exe
 ```
 
+**Linux (headless / Docker):**
+```bash
+cmake --preset linux
+cmake --build --preset linux
+# binary: build/live2d-render
+```
+
+Prerequisites on Linux: `sudo apt install cmake ninja-build libgl-dev libegl-dev ffmpeg`
+
 Run from the project root — shader and asset paths are relative to the working directory.
+
+---
+
+## Verifying the Build
+
+After building, run the verification script to confirm the renderer is working correctly:
+
+```bash
+python scripts/verify_build.py
+```
+
+This renders a 15-second shiori test clip (neutral → happy → sad) and checks for known failure signatures automatically. **Visually review the produced video** at `tests/output/verify_shiori.mp4` as the final confirmation — automated checks catch structural failures but cannot confirm that the model looks correct.
+
+What the script checks automatically:
+- Renderer binary, FFmpeg, and required fixtures are present
+- `FrameworkShaders/` directory was populated by the build (post-build copy step)
+- Renderer exits successfully with the expected frame count
+- Renderer log contains no known error signatures (GLEW/EGL failures, shader errors, pipe errors)
+- Output file size is above the blank-frame threshold (a known failure mode produces a ~5× smaller file)
+- Video stream has correct resolution, duration, and an audio track
+
+Human review checklist:
+- [ ] Shiori model is visible — not a blank, blue, or solid-color screen
+- [ ] Expressions change visibly across the three labeled segments (neutral → happy → sad)
+- [ ] Lip sync mouth movement is present throughout
+
+Exit codes: `0` = all checks passed, `1` = failure, `2` = passed with warnings.
 
 ---
 

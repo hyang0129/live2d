@@ -5,17 +5,21 @@
  * and exits with an appropriate code.
  */
 
-// Must come before any Windows.h includes to avoid min/max macro conflicts
-#define NOMINMAX
-#include <Windows.h>
-#include <objbase.h>  // CoInitializeEx / CoUninitialize
+#ifdef _WIN32
+#  define NOMINMAX
+#  include <Windows.h>
+#  include <objbase.h>  // CoInitializeEx / CoUninitialize
+#endif
+
 #include <fstream>
 #include <filesystem>
 #include <cstdio>
 namespace fs = std::filesystem;
 
 #include <CubismFramework.hpp>
-#include <Rendering/D3D11/CubismRenderer_D3D11.hpp>
+#ifdef _WIN32
+#  include <Rendering/D3D11/CubismRenderer_D3D11.hpp>
+#endif
 
 #include "allocator.h"
 #include "cli/args.h"
@@ -25,9 +29,8 @@ namespace fs = std::filesystem;
 #include "render/lipsync_sequencer.h"
 #include "render/cue_sequencer.h"
 #include "render/live2d_model.h"
-#include "render/offscreen_d3d11.h"
 #include "render/ffmpeg_encoder.h"
-#include "render/render_loop.h"
+#include "render/render_loop.h"  // also pulls in OffscreenRenderer typedef
 
 using namespace Csm;
 
@@ -46,7 +49,7 @@ static void CubismLogFunc(const char* msg) {
     Logger::Debug("[Cubism] %s", msg);
 }
 
-// Cubism file loader — used by shader manager to load FrameworkShaders/CubismEffect.fx
+// Cubism file loader — used by shader manager to load FrameworkShaders/
 static Csm::csmByte* CubismLoadFile(const std::string filePath, Csm::csmSizeInt* outSize) {
     std::ifstream f(fs::u8path(filePath), std::ios::binary | std::ios::ate);
     if (!f.is_open()) { *outSize = 0; return nullptr; }
@@ -59,8 +62,6 @@ static Csm::csmByte* CubismLoadFile(const std::string filePath, Csm::csmSizeInt*
 static void CubismReleaseBytes(Csm::csmByte* bytes) { delete[] bytes; }
 
 // ── Inspect mode ─────────────────────────────────────────────────────────────
-// Prints model vocabulary as JSON to stdout. Intended for director/video_agent
-// to discover valid emotion and reaction aliases before authoring manifests.
 static int RunInspect(const std::string& model_id)
 {
     const auto profiles = LoadRegistry();
@@ -145,9 +146,11 @@ int main(int argc, char* argv[])
         return EXIT_ASSET_ERROR;
 
     // ── 4. Initialize graphics backend ───────────────────────────────────────
+#ifdef _WIN32
     CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+#endif
 
-    OffscreenD3D11 offscreen;
+    OffscreenRenderer offscreen;
     if (!offscreen.Init(manifest.width, manifest.height))
         return EXIT_RENDER_ERROR;
 
@@ -162,13 +165,19 @@ int main(int argc, char* argv[])
     CubismFramework::StartUp(&allocator, &cubismOption);
     CubismFramework::Initialize();
 
+#ifdef _WIN32
     // Tell the D3D11 renderer about our device (required before CreateRenderer)
     // bufferSetNum=1 → single buffered (no swap chain needed for offscreen)
     Rendering::CubismRenderer_D3D11::InitializeConstantSettings(1, offscreen.Device());
+#endif
 
     // ── 6. Load Live2D model ──────────────────────────────────────────────────
     Live2DModel model;
+#ifdef _WIN32
     if (!model.Load(profile.path, offscreen.Device(), offscreen.Context())) {
+#else
+    if (!model.Load(profile.path)) {
+#endif
         CubismFramework::Dispose();
         return EXIT_RENDER_ERROR;
     }
@@ -200,7 +209,9 @@ int main(int argc, char* argv[])
 
     CubismFramework::Dispose();
 
+#ifdef _WIN32
     CoUninitialize();
+#endif
 
     if (!render_ok) { Logger::CloseLogFile(); return EXIT_RENDER_ERROR; }
     if (!encode_ok) { Logger::CloseLogFile(); return EXIT_OUTPUT_ERROR; }

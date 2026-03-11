@@ -6,13 +6,20 @@
 #include <Id/CubismIdManager.hpp>
 #include <Motion/CubismMotion.hpp>
 #include <Physics/CubismPhysics.hpp>
-#include <Rendering/D3D11/CubismRenderer_D3D11.hpp>
 #include <Utils/CubismString.hpp>
 #include <Motion/CubismMotionQueueEntry.hpp>
 
-#include <WICTextureLoader.h>  // DirectXTK
 #include <filesystem>
 #include <fstream>
+
+#ifdef _WIN32
+#  include <Rendering/D3D11/CubismRenderer_D3D11.hpp>
+#  include <WICTextureLoader.h>  // DirectXTK
+#else
+#  include <Rendering/OpenGL/CubismRenderer_OpenGLES2.hpp>
+#  define STB_IMAGE_IMPLEMENTATION
+#  include <stb_image.h>
+#endif
 
 namespace fs = std::filesystem;
 using namespace Csm;
@@ -48,8 +55,12 @@ Live2DModel::Live2DModel()
 Live2DModel::~Live2DModel()
 {
     for (auto& t : _textures) {
+#ifdef _WIN32
         if (t.srv) { t.srv->Release(); t.srv = nullptr; }
         if (t.res) { t.res->Release(); t.res = nullptr; }
+#else
+        if (t.id) { glDeleteTextures(1, &t.id); t.id = 0; }
+#endif
     }
     _textures.clear();
 
@@ -68,14 +79,17 @@ Live2DModel::~Live2DModel()
 }
 
 // ── Load ─────────────────────────────────────────────────────────────────────
+#ifdef _WIN32
 bool Live2DModel::Load(const std::string& model3_json_path,
                        ID3D11Device*        device,
                        ID3D11DeviceContext* context)
+#else
+bool Live2DModel::Load(const std::string& model3_json_path)
+#endif
 {
     // Separate directory and filename
     fs::path p(model3_json_path);
     _modelDir = (p.parent_path().string() + "/").c_str();
-    const std::string fileName = p.filename().string();
 
     csmSizeInt size;
     csmByte* buf = CreateBuffer(model3_json_path.c_str(), &size);
@@ -91,9 +105,13 @@ bool Live2DModel::Load(const std::string& model3_json_path,
         return false;
     }
 
-    // Create D3D11 renderer
+    // Create renderer and upload textures
     CreateRenderer();
+#ifdef _WIN32
     SetupTextures(device, context);
+#else
+    SetupTextures();
+#endif
 
     Logger::Info("Live2D model loaded: %d parameters, %d expressions, %d motions, physics %s",
         _model->GetParameterCount(),
@@ -213,6 +231,7 @@ void Live2DModel::SetupModel(ICubismModelSetting* setting)
     _initialized = true;
 }
 
+#ifdef _WIN32
 void Live2DModel::SetupTextures(ID3D11Device* device, ID3D11DeviceContext* context)
 {
     const int texCount = _setting->GetTextureCount();
@@ -247,6 +266,48 @@ void Live2DModel::SetupTextures(ID3D11Device* device, ID3D11DeviceContext* conte
 
     renderer->IsPremultipliedAlpha(false);
 }
+
+#else  // Linux / OpenGL
+
+void Live2DModel::SetupTextures()
+{
+    const int texCount = _setting->GetTextureCount();
+    _textures.resize(texCount);
+
+    auto* renderer = GetRenderer<Rendering::CubismRenderer_OpenGLES2>();
+
+    for (int i = 0; i < texCount; ++i) {
+        const char* fname = _setting->GetTextureFileName(i);
+        if (!fname || fname[0] == '\0') continue;
+
+        const std::string texPath = std::string(_modelDir.GetRawString()) + fname;
+
+        int w = 0, h = 0, channels = 0;
+        unsigned char* pixels = stbi_load(texPath.c_str(), &w, &h, &channels, STBI_rgb_alpha);
+        if (!pixels) {
+            Logger::Warn("Texture load failed: \"%s\" — %s",
+                         texPath.c_str(), stbi_failure_reason());
+            continue;
+        }
+
+        GLuint texId = 0;
+        glGenTextures(1, &texId);
+        glBindTexture(GL_TEXTURE_2D, texId);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                     w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        stbi_image_free(pixels);
+
+        _textures[i] = { texId };
+        renderer->BindTexture(i, texId);
+    }
+
+    renderer->IsPremultipliedAlpha(false);
+}
+#endif  // _WIN32
 
 // ── Per-frame update ─────────────────────────────────────────────────────────
 void Live2DModel::Update(float deltaTime, const MouthState& mouth, const CueState& cue)
@@ -296,7 +357,11 @@ void Live2DModel::Draw(CubismMatrix44& vpMatrix)
 {
     if (!_model) return;
     vpMatrix.MultiplyByMatrix(_modelMatrix);
+#ifdef _WIN32
     auto* renderer = GetRenderer<Rendering::CubismRenderer_D3D11>();
+#else
+    auto* renderer = GetRenderer<Rendering::CubismRenderer_OpenGLES2>();
+#endif
     renderer->SetMvpMatrix(&vpMatrix);
     renderer->DrawModel();
 }

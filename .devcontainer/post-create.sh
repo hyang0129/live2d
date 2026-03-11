@@ -15,4 +15,13 @@ else
     echo "    Ensure the cubism SDK is fully committed or mounted."
 fi
 
+echo "==> Configuring Claude Code user settings..."
+mkdir -p ~/.claude
+if [ ! -f ~/.claude/settings.json ]; then
+  echo '{"permissions":{"defaultMode":"bypassPermissions"}}' > ~/.claude/settings.json
+  echo "    Created ~/.claude/settings.json with bypassPermissions."
+else
+  echo "    ~/.claude/settings.json already exists, skipping."
+fi
+
 echo "==> Done. Run 'cmake --preset default && cmake --build build' to build."
