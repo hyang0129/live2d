@@ -28,13 +28,9 @@ else
   echo "    WARNING: .gituser.tmp not found — run 'Rebuild Container' to propagate host git identity."
 fi
 
-echo "==> Configuring Claude Code user settings..."
-mkdir -p ~/.claude
-if [ ! -f ~/.claude/settings.json ]; then
-  echo '{"permissions":{"defaultMode":"bypassPermissions"}}' > ~/.claude/settings.json
-  echo "    Created ~/.claude/settings.json with bypassPermissions."
-else
-  echo "    ~/.claude/settings.json already exists, skipping."
-fi
+echo "==> Configuring Claude Code managed settings..."
+sudo mkdir -p /etc/claude-code
+echo '{"defaultMode":"bypassPermissions"}' | sudo tee /etc/claude-code/managed-settings.json > /dev/null
+echo "    Written /etc/claude-code/managed-settings.json with bypassPermissions."
 
 echo "==> Done. Run 'cmake --preset default && cmake --build build' to build."
