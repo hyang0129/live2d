@@ -316,15 +316,7 @@ void Live2DModel::Update(float deltaTime, const MouthState& mouth, const CueStat
 
     _model->LoadParameters();
 
-    // Idle motion if no motion running
-    if (_motionManager->IsFinished()) {
-        // Start first idle motion if available
-        if (_setting->GetMotionCount("Idle") > 0 && _motions.GetSize() > 0) {
-            csmString idleName = Utils::CubismString::GetFormatedString("Idle_0");
-            auto* idle = static_cast<CubismMotion*>(_motions[idleName.GetRawString()]);
-            if (idle) _motionManager->StartMotionPriority(idle, false, 1);
-        }
-    } else {
+    if (!_motionManager->IsFinished()) {
         _motionManager->UpdateMotion(_model, deltaTime);
     }
 
@@ -334,19 +326,57 @@ void Live2DModel::Update(float deltaTime, const MouthState& mouth, const CueStat
     if (_expressionManager)
         _expressionManager->UpdateMotion(_model, deltaTime);
 
-    // Gaze / head from cue state (set directly, overrides motion data)
-    _model->SetParameterValue(_idParamEyeBallX,   cue.gaze_x);
-    _model->SetParameterValue(_idParamEyeBallY,   cue.gaze_y);
-    _model->SetParameterValue(_idParamAngleX,     cue.head_yaw);
-    _model->SetParameterValue(_idParamAngleY,     cue.head_pitch);
-    _model->SetParameterValue(_idParamAngleZ,     cue.head_roll);
+    // Gaze / head from cue state — skip when a reaction motion (priority ≥ 2)
+    // is actively playing; the motion keyframes own those parameters.
+    if (_motionManager->GetCurrentPriority() < 2) {
+        _model->SetParameterValue(_idParamEyeBallX, cue.gaze_x);
+        _model->SetParameterValue(_idParamEyeBallY, cue.gaze_y);
+        _model->SetParameterValue(_idParamAngleX,   cue.head_yaw);
+        _model->SetParameterValue(_idParamAngleY,   cue.head_pitch);
+        _model->SetParameterValue(_idParamAngleZ,   cue.head_roll);
+    }
 
     // Mouth from lipsync sequencer
     _model->SetParameterValue(_idParamMouthOpenY, mouth.open, 0.8f);
     _model->SetParameterValue(_idParamMouthForm,  mouth.form, 0.8f);
 
-    // Breath and physics
-    if (_breath)  _breath->UpdateParameters(_model, deltaTime);
+    // Breath guard: suppress / blend breath during and after reaction motions (priority >= 2)
+    {
+        const int currentPriority = _motionManager->GetCurrentPriority();
+        if (currentPriority >= 2) {
+            _reactionFadeWeight = 1.0f;
+            _reactionWasActive  = true;
+        } else if (_reactionWasActive) {
+            _reactionFadeWeight -= deltaTime / 0.5f;
+            if (_reactionFadeWeight <= 0.0f) {
+                _reactionFadeWeight = 0.0f;
+                _reactionWasActive  = false;
+            }
+        }
+
+        if (_breath) {
+            if (_reactionFadeWeight > 0.0f) {
+                const float savedAngleX     = _model->GetParameterValue(_idParamAngleX);
+                const float savedAngleY     = _model->GetParameterValue(_idParamAngleY);
+                const float savedAngleZ     = _model->GetParameterValue(_idParamAngleZ);
+                const float savedBodyAngleX = _model->GetParameterValue(_idParamBodyAngleX);
+
+                _breath->UpdateParameters(_model, deltaTime);
+
+                const float w = _reactionFadeWeight;
+                _model->SetParameterValue(_idParamAngleX,
+                    _model->GetParameterValue(_idParamAngleX)     * (1.0f - w) + savedAngleX     * w);
+                _model->SetParameterValue(_idParamAngleY,
+                    _model->GetParameterValue(_idParamAngleY)     * (1.0f - w) + savedAngleY     * w);
+                _model->SetParameterValue(_idParamAngleZ,
+                    _model->GetParameterValue(_idParamAngleZ)     * (1.0f - w) + savedAngleZ     * w);
+                _model->SetParameterValue(_idParamBodyAngleX,
+                    _model->GetParameterValue(_idParamBodyAngleX) * (1.0f - w) + savedBodyAngleX * w);
+            } else {
+                _breath->UpdateParameters(_model, deltaTime);
+            }
+        }
+    }
     if (_physics) _physics->Evaluate(_model, deltaTime);
     if (_pose)    _pose->UpdateParameters(_model, deltaTime);
 

@@ -9,18 +9,51 @@
 		"Physics": "majo.physics3.json",
 		"DisplayInfo": "majo.cdi3.json",
 		"Expressions": [
-			{ "Name": "neutral",     "File": "expressions/neutral.exp3.json" },
-			{ "Name": "happy",       "File": "expressions/happy.exp3.json" },
-			{ "Name": "surprised",   "File": "expressions/surprised.exp3.json" },
-			{ "Name": "bored",       "File": "expressions/bored.exp3.json" },
-			{ "Name": "sad",         "File": "expressions/sad.exp3.json" },
-			{ "Name": "angry",       "File": "expressions/angry.exp3.json" },
-			{ "Name": "curious",     "File": "expressions/curious.exp3.json" },
-			{ "Name": "embarrassed", "File": "expressions/embarrassed.exp3.json" }
+			{
+				"Name": "neutral",
+				"File": "expressions/neutral.exp3.json"
+			},
+			{
+				"Name": "happy",
+				"File": "expressions/happy.exp3.json"
+			},
+			{
+				"Name": "surprised",
+				"File": "expressions/surprised.exp3.json"
+			},
+			{
+				"Name": "bored",
+				"File": "expressions/bored.exp3.json"
+			},
+			{
+				"Name": "sad",
+				"File": "expressions/sad.exp3.json"
+			},
+			{
+				"Name": "angry",
+				"File": "expressions/angry.exp3.json"
+			},
+			{
+				"Name": "curious",
+				"File": "expressions/curious.exp3.json"
+			},
+			{
+				"Name": "embarrassed",
+				"File": "expressions/embarrassed.exp3.json"
+			}
 		],
 		"Motions": {
 			"Idle": [
-				{ "File": "Scene1.motion3.json" }
+				{
+					"File": "Scene1.motion3.json"
+				}
+			],
+			"NodReview": [
+				{
+					"File": "motions/nod_review.motion3.json",
+					"FadeInTime": 0.05,
+					"FadeOutTime": 0.0
+				}
 			]
 		}
 	},
