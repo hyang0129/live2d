@@ -1,0 +1,65 @@
+{
+	"Version": 3,
+	"FileReferences": {
+		"Moc": "majo.moc3",
+		"Textures": [
+			"majo.512/texture_00.png",
+			"majo.512/texture_01.png"
+		],
+		"Physics": "majo.physics3.json",
+		"DisplayInfo": "majo.cdi3.json",
+		"Expressions": [
+			{ "Name": "neutral",     "File": "expressions/neutral.exp3.json" },
+			{ "Name": "happy",       "File": "expressions/happy.exp3.json" },
+			{ "Name": "surprised",   "File": "expressions/surprised.exp3.json" },
+			{ "Name": "bored",       "File": "expressions/bored.exp3.json" },
+			{ "Name": "sad",         "File": "expressions/sad.exp3.json" },
+			{ "Name": "angry",       "File": "expressions/angry.exp3.json" },
+			{ "Name": "curious",     "File": "expressions/curious.exp3.json" },
+			{ "Name": "embarrassed", "File": "expressions/embarrassed.exp3.json" }
+		],
+		"Motions": {
+			"Idle": [
+				{ "File": "Scene1.motion3.json" }
+			],
+			"Nod": [
+				{
+					"File": "motions/nod.motion3.json",
+					"FadeInTime": 0.1,
+					"FadeOutTime": 0.3
+				}
+			],
+			"LookAway": [
+				{
+					"File": "motions/look_away.motion3.json",
+					"FadeInTime": 0.15,
+					"FadeOutTime": 0.4
+				}
+			],
+			"Tap": [
+				{
+					"File": "motions/tap.motion3.json",
+					"FadeInTime": 0.05,
+					"FadeOutTime": 0.3
+				}
+			]
+		}
+	},
+	"Groups": [
+		{
+			"Target": "Parameter",
+			"Name": "EyeBlink",
+			"Ids": [
+				"ParamEyeLOpen",
+				"ParamEyeROpen"
+			]
+		},
+		{
+			"Target": "Parameter",
+			"Name": "LipSync",
+			"Ids": [
+				"ParamMouthOpenY"
+			]
+		}
+	]
+}
