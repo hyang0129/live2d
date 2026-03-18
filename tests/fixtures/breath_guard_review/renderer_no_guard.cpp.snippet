@@ -1,0 +1,9 @@
+// PRE-FIX renderer configuration — no breath guard
+// Breath runs every frame regardless of reaction state.
+// Used to render Clip 1 of review_breath_snap.mp4.
+//
+// Context: replace the breath block in Live2DModel::Update()
+// (after the cue guard, before physics).
+
+    if (_breath)
+        _breath->UpdateParameters(_model, deltaTime);

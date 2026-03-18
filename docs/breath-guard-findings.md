@@ -125,14 +125,41 @@ and long reactions the snap-prevention lerp guard.
 
 ---
 
-## Review Artefacts
+## Reproducing the Review
 
-- `tests/fixtures/majo_review/review_breath_snap.mp4` — 18s comparison clip.
-  - Clip 1 (0–9s): no-guard renderer. Two nods at t=2.0s and t=4.0s.
-    Second nod exits at t≈4.9s when `ParamAngleX` breath is near peak
-    (−15°). Head tilts sideways immediately after nod exit.
-  - Clip 2 (9–18s): lerp-guard renderer. Same nods. Head stays centred at
-    nod exit; breath fades in over 0.5s.
-- `assets/models/majo/motions/nod_review.motion3.json` — 0.9s review motion
-  (0.3s descent to −15°, 0.2s hold, 0.4s return to 0°, FadeOutTime=0).
-  Designed so the second nod aligns breath phase with AngleX amplitude peak.
+All artefacts are in `tests/fixtures/breath_guard_review/`.
+
+### Files
+
+| File | Purpose |
+|---|---|
+| `renderer_no_guard.cpp.snippet` | Breath block for the no-guard (pre-fix) build |
+| `renderer_lerp_guard.cpp.snippet` | Breath block for the lerp-guard (post-fix) build |
+| `render_review.py` | Script that builds both clips and concatenates into the MP4 |
+| `assets/models/majo/motions/nod_review.motion3.json` | 0.9s review nod motion |
+| `tests/fixtures/majo_review/review_breath_snap.mp4` | Final 18s comparison clip |
+
+### Steps
+
+1. Build two renderer binaries using the `.cpp.snippet` files as the breath
+   block in `Live2DModel::Update()`:
+   - `/tmp/live2d_build_pre/live2d-render` — paste `renderer_no_guard.cpp.snippet`
+   - `/tmp/live2d_build_post/live2d-render` — paste `renderer_lerp_guard.cpp.snippet`
+2. Run `python3 tests/fixtures/breath_guard_review/render_review.py` from the
+   live2d repo root.
+3. Output: `/tmp/breath_snap_review/review_breath_snap.mp4`
+
+### What to look for
+
+- **Clip 1 (no-guard):** Two nods at t=2.0s and t=4.0s. At the second nod
+  exit (~t=4.9s), the head tilts sideways immediately — the `ParamAngleX`
+  breath phase is near its peak (−15°) at that moment.
+- **Clip 2 (lerp-guard):** Same nods. Head stays centred at nod exit; the
+  lateral breath oscillation fades in over 0.5s.
+
+### Motion design
+
+`nod_review.motion3.json`: 0.9s, FadeOutTime=0, ends at 0°.
+- 0.0s → 0°, 0.3s → −15° (slow descent), 0.5s → −15° (hold), 0.9s → 0°
+- Second nod fires at t=4.0s so it exits at t≈4.9s, aligning with the
+  `ParamAngleX` breath amplitude peak for maximum visible snap.
