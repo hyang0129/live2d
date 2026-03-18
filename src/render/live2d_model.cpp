@@ -179,10 +179,10 @@ void Live2DModel::SetupModel(ICubismModelSetting* setting)
         auto* idMgr = CubismFramework::GetIdManager();
 
         _breathBaseParams = {
-            {idMgr->GetId(ParamAngleX),     0.f, 15.f,  6.5345f, 0.5f},
-            {idMgr->GetId(ParamAngleY),     0.f,  8.f,  3.5345f, 0.5f},
-            {idMgr->GetId(ParamAngleZ),     0.f, 10.f,  5.5345f, 0.5f},
-            {idMgr->GetId(ParamBodyAngleX), 0.f,  4.f, 15.5345f, 0.5f},
+            {idMgr->GetId(ParamAngleX),     0.f,  7.2f, 6.5345f, 0.5f},
+            {idMgr->GetId(ParamAngleY),     0.f,  4.5f, 3.5345f, 0.5f},
+            {idMgr->GetId(ParamAngleZ),     0.f,  5.4f, 5.5345f, 0.5f},
+            {idMgr->GetId(ParamBodyAngleX), 0.f,  2.25f, 15.5345f, 0.5f},
             {idMgr->GetId(ParamBreath),     0.5f, 0.5f, 3.2345f, 0.5f},
         };
 
