@@ -33,6 +33,20 @@ FrameworkShaders/
 tests/output/*
 !tests/output/.gitkeep
 
+# Motion/expression iteration versions — _v0, _v1, etc. are scratch; commit only the final
+assets/models/majo/motions/*_v[0-9].motion3.json
+assets/models/majo/expressions/*_v[0-9].exp3.json
+
+# Review/calibration scratch videos — iteration artefacts, not fixtures
+tests/fixtures/majo_review/_tmp_*/
+tests/fixtures/majo_review/calibration*.mp4
+tests/fixtures/majo_review/round_1_*.mp4
+tests/fixtures/majo_review/round_2_*.mp4
+tests/fixtures/majo_review/test_*.mp4
+tests/fixtures/majo_review/calib_nod_*.mp4
+tests/fixtures/majo_review/debug_*.log
+tests/fixtures/majo_cue_test_*.mp4
+
 # Scratch/review manifests (one-shots used during model authoring, not fixtures)
 tests/manifests/
 

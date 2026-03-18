@@ -71,6 +71,17 @@ docs/
 └── live2d-avatar-api-contract.md  # Full interface contract
 ```
 
+### Test Artefact Conventions
+
+| Directory | Purpose |
+|---|---|
+| `tests/fixtures/` | Static input data checked into git — motion JSONs, manifest snippets, reference clips |
+| `results/tests/` | Output from test runs — rendered MP4s, logs, diff images. **Never commit these.** |
+
+When writing test scripts or render scripts, always direct output to `results/tests/` (or a subdirectory), not to `tests/fixtures/`. The `.gitignore` excludes `results/` entirely.
+
+---
+
 ### Key Files
 
 - `docs/live2d-avatar-api-contract.md` — scene manifest schema, cue vocabulary, CLI spec
