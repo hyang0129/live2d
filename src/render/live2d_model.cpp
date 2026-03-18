@@ -316,15 +316,7 @@ void Live2DModel::Update(float deltaTime, const MouthState& mouth, const CueStat
 
     _model->LoadParameters();
 
-    // Idle motion if no motion running
-    if (_motionManager->IsFinished()) {
-        // Start first idle motion if available
-        if (_setting->GetMotionCount("Idle") > 0 && _motions.GetSize() > 0) {
-            csmString idleName = Utils::CubismString::GetFormatedString("Idle_0");
-            auto* idle = static_cast<CubismMotion*>(_motions[idleName.GetRawString()]);
-            if (idle) _motionManager->StartMotionPriority(idle, false, 1);
-        }
-    } else {
+    if (!_motionManager->IsFinished()) {
         _motionManager->UpdateMotion(_model, deltaTime);
     }
 
