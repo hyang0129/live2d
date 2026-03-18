@@ -1,0 +1,66 @@
+{
+  "video": "/workspaces/hub_1/live2d/tests/fixtures/majo_review/round_1_review.mp4",
+  "total_duration": 40.5,
+  "clips": [
+    {
+      "label": "EXPRESSION: neutral",
+      "start_time": 0.0,
+      "duration": 3.5
+    },
+    {
+      "label": "EXPRESSION: happy",
+      "start_time": 3.5,
+      "duration": 3.5
+    },
+    {
+      "label": "EXPRESSION: surprised",
+      "start_time": 7.0,
+      "duration": 3.5
+    },
+    {
+      "label": "EXPRESSION: bored",
+      "start_time": 10.5,
+      "duration": 3.5
+    },
+    {
+      "label": "EXPRESSION: sad",
+      "start_time": 14.0,
+      "duration": 3.5
+    },
+    {
+      "label": "EXPRESSION: angry",
+      "start_time": 17.5,
+      "duration": 3.5
+    },
+    {
+      "label": "EXPRESSION: curious",
+      "start_time": 21.0,
+      "duration": 3.5
+    },
+    {
+      "label": "EXPRESSION: embarrassed",
+      "start_time": 24.5,
+      "duration": 3.5
+    },
+    {
+      "label": "REACTION: idle",
+      "start_time": 28.0,
+      "duration": 3.5
+    },
+    {
+      "label": "REACTION: nod",
+      "start_time": 31.5,
+      "duration": 2.5
+    },
+    {
+      "label": "REACTION: look_away",
+      "start_time": 34.0,
+      "duration": 3.5
+    },
+    {
+      "label": "REACTION: tap",
+      "start_time": 37.5,
+      "duration": 3.0
+    }
+  ]
+}

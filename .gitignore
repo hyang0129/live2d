@@ -33,6 +33,12 @@ FrameworkShaders/
 tests/output/*
 !tests/output/.gitkeep
 
+# Generated render artifacts under tests/fixtures/ — MP4s, logs, temp staging dirs
+# JSON manifests and Python render scripts are kept (authored assets, not generated)
+tests/fixtures/**/*.mp4
+tests/fixtures/**/*.log
+tests/fixtures/**/_tmp_*/
+
 # Scratch/review manifests (one-shots used during model authoring, not fixtures)
 tests/manifests/
 

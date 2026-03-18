@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "_description": "Example: shake reaction (enhancement tier). Neutral expression throughout. Shake triggered at t=2. Duration ~0.8s two-cycle head shake. NOTE: shake .motion3.json must be authored for majo before this renders correctly.",
+  "model": {
+    "id": "majo",
+    "path": "assets/models/majo/majo.model3.json"
+  },
+  "audio": "spec/v1/behaviour-examples/audio/silence_5s.wav",
+  "output": "spec/v1/behaviour-examples/renders/reaction_shake.mp4",
+  "resolution": [1080, 1920],
+  "fps": 30,
+  "background": "transparent",
+  "lipsync": [],
+  "cues": [
+    { "time": 0.0, "emotion": "neutral" },
+    { "time": 2.0, "reaction": "shake" }
+  ]
+}

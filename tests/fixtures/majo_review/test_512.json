@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "model": {"id": "majo_512"},
+  "audio": null,
+  "output": "tests/fixtures/majo_review/test_512.mp4",
+  "resolution": [640, 360],
+  "fps": 30,
+  "background": "#1a1a2e",
+  "lipsync": [],
+  "cues": [
+    {"time": 0.0, "emotion": "neutral"},
+    {"time": 2.5, "emotion": "neutral"}
+  ]
+}

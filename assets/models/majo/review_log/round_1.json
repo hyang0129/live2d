@@ -1,0 +1,104 @@
+{
+  "round": 1,
+  "clips": [
+    {
+      "label": "EXPRESSION: neutral",
+      "type": "expression",
+      "verdict": "Approved",
+      "human_quote": null,
+      "agent_diagnosis": "Not mentioned by reviewer. Treated as approved.",
+      "proposed_fix": null
+    },
+    {
+      "label": "EXPRESSION: happy",
+      "type": "expression",
+      "verdict": "Approved",
+      "human_quote": null,
+      "agent_diagnosis": "Not mentioned by reviewer. Treated as approved.",
+      "proposed_fix": null
+    },
+    {
+      "label": "EXPRESSION: surprised",
+      "type": "expression",
+      "verdict": "Approved",
+      "human_quote": null,
+      "agent_diagnosis": "Not mentioned by reviewer. Treated as approved.",
+      "proposed_fix": null
+    },
+    {
+      "label": "EXPRESSION: bored",
+      "type": "expression",
+      "verdict": "Approved",
+      "human_quote": null,
+      "agent_diagnosis": "Not mentioned by reviewer. Treated as approved.",
+      "proposed_fix": null
+    },
+    {
+      "label": "EXPRESSION: sad",
+      "type": "expression",
+      "verdict": "Approved",
+      "human_quote": null,
+      "agent_diagnosis": "Not mentioned by reviewer. Sad serves as the visual reference the reviewer compared against curious. The file sets ParamEyeLOpen/ParamEyeROpen (Multiply 0.8), ParamBrowLY (-0.2 Add), ParamBrowLForm (0.6 Add), and ParamMouthForm (-1.76 Add) — all three regions covered. Treated as approved.",
+      "proposed_fix": null
+    },
+    {
+      "label": "EXPRESSION: angry",
+      "type": "expression",
+      "verdict": "Approved",
+      "human_quote": null,
+      "agent_diagnosis": "Not mentioned by reviewer. Angry serves as the visual reference the reviewer compared against embarrassed. The file sets ParamBrowLY (-1 Add), ParamBrowLForm (-1 Add), ParamMouthForm (-2 Add), ParamMouthOpenY (1 Add) — strongly furrowed brows and open downturned mouth. It lacks Eye params per the audit, but the reviewer did not flag it as wrong. Treated as approved.",
+      "proposed_fix": null
+    },
+    {
+      "label": "EXPRESSION: curious",
+      "type": "expression",
+      "verdict": "Revise",
+      "human_quote": "curious looks like sad",
+      "agent_diagnosis": "curious.exp3.json sets only brow and mouth params: ParamBrowLY=-1 (Add), ParamBrowLForm=1 (Add), ParamMouthOpenY=1 (Add). It has no Eye parameters at all (confirmed by audit: 'missing Eyes region params'). The sad expression sets ParamEyeLOpen and ParamEyeROpen to 0.8 via Multiply, which partially closes the eyes. With no Eye override in curious, the Cubism engine leaves ParamEyeLOpen and ParamEyeROpen at whatever the idle/default drives — which may happen to sit near the same partially-closed value sad produces, making the two read as identical. Additionally, ParamBrowLY=-1 (raised brow) in curious and ParamBrowLY=-0.2 (slightly raised) in sad are in opposite directions, but without eye differentiation this brow difference alone is insufficient to distinguish them visually. The open mouth (ParamMouthOpenY=1) in curious is supposed to signal alertness/questioning, but if the eyes look the same, the overall impression collapses back to sad.",
+      "proposed_fix": "Add ParamEyeLOpen and ParamEyeROpen to curious.exp3.json. For curious the eyes should be wide open to signal alertness and engagement, contrasting with sad's partially closed eyes. Set both to Value=1.1 Blend=Multiply (forces eyes fully open, overriding any downward idle drift). Also confirm ParamBrowLY=-1 is correct for the 'raised brow' read: in the majo model negative ParamBrowLY means raised brows (same direction as the audit reference). If ParamBrowLY direction is actually positive=raised, flip to ParamBrowLY=1. Final parameter set should be: ParamBrowLY=-1 Add, ParamBrowLForm=1 Add, ParamEyeLOpen=1.1 Multiply, ParamEyeROpen=1.1 Multiply, ParamMouthOpenY=1 Add."
+    },
+    {
+      "label": "EXPRESSION: embarrassed",
+      "type": "expression",
+      "verdict": "Revise",
+      "human_quote": "embarrassed looks like angry",
+      "agent_diagnosis": "embarrassed.exp3.json sets: ParamEyeLOpen=0.89 Multiply, ParamEyeROpen=0.89 Multiply, ParamBrowLY=-0.56 Add, ParamBrowLForm=-0.74 Add, ParamMouthForm=-0.46 Add. The angry.exp3.json sets: ParamBrowLY=-1 Add, ParamBrowLForm=-1 Add, ParamMouthForm=-2 Add, ParamMouthOpenY=1 Add. The critical overlap: both expressions use negative ParamBrowLY (lowered brows) and negative ParamBrowLForm. In the majo model, negative ParamBrowLForm means furrowed/angry brow shape — and embarrassed is using the same direction (-0.74) as angry (-1), just with smaller magnitude. This means embarrassed produces a miniaturized version of the angry brow shape rather than a distinct embarrassed shape. The intended embarrassed brow should be raised (not lowered) with an inner-raised anxious tilt — positive ParamBrowLY to lift brows up. The mouth at -0.46 is also headed in the downturned direction (same as angry's -2), instead of the strained-upward smile expected for embarrassed. With brows going the wrong direction and mouth going toward frown rather than smile, the expression reads as muted-angry rather than embarrassed.",
+      "proposed_fix": "Revise embarrassed.exp3.json brow and mouth params: (1) Change ParamBrowLY from -0.56 to +0.5 (raise brows upward — the opposite of the angry lowered-brow read). (2) Change ParamBrowLForm from -0.74 to +0.3 (shift toward a softer, non-furrowed brow shape, away from the angry furrowed form). (3) Change ParamMouthForm from -0.46 to +0.6 (shift mouth toward an upward strained smile rather than a downturned frown). Keep ParamEyeLOpen=0.89 Multiply and ParamEyeROpen=0.89 Multiply — slightly downcast eyes are appropriate for embarrassed and do not conflict with angry (which has no eye params). Final parameter set: ParamEyeLOpen=0.89 Multiply, ParamEyeROpen=0.89 Multiply, ParamBrowLY=0.5 Add, ParamBrowLForm=0.3 Add, ParamMouthForm=0.6 Add."
+    },
+    {
+      "label": "REACTION: idle",
+      "type": "reaction",
+      "verdict": "Approved",
+      "human_quote": "idle looks correct",
+      "agent_diagnosis": "The idle motion (Scene1.motion3.json) drives custom effect parameters (Param25, Param26, Param27, etc.) and produces a looping ambient motion. Reviewer confirmed it looks correct.",
+      "proposed_fix": null
+    },
+    {
+      "label": "REACTION: nod",
+      "type": "reaction",
+      "verdict": "Revise",
+      "human_quote": "the other 3 reactions look exactly like idle",
+      "agent_diagnosis": "nod.motion3.json is registered in majo.model3.json under 'Nod' and drives ParamAngleX with a peak of -10 (33% of the ±30 range). However, the idle motion (Scene1.motion3.json) drives only custom non-standard params (Param25-30 etc.) and does NOT drive ParamAngleX, ParamAngleY, or ParamAngleZ at all (confirmed by audit). This means the idle baseline for ParamAngleX is 0 (default pose), so a -10 deflection should be clearly visible above the idle baseline. The most likely cause of the 'looks like idle' report is that the renderer is not actually triggering the Nod motion group — the cue sequencer may be dispatching the clip label 'nod' (lowercase) but the model3.json registers it as 'Nod' (capitalized), causing a lookup miss and falling through to idle continuation. Alternatively the motion priority is not set to override the idle motion (Cubism requires priority >= 2 to interrupt a looping idle). The motion file content and amplitude appear sufficient for visibility.",
+      "proposed_fix": null,
+      "clarification_needed": "Need to confirm how the cue sequencer maps the reaction label 'nod' to the motion group name. The model3.json registers the group as 'Nod' (capital N). If the sequencer does a case-sensitive lookup using 'nod' it will not find 'Nod' and will not trigger the motion. Please confirm: (1) Does the cue sequencer perform a case-insensitive match or exact match when resolving reaction labels to motion group names? (2) What motion priority value is passed when triggering reaction clips — is it >= 2 (Force) to interrupt the looping idle? Same question applies to look_away ('LookAway' in model3.json) and tap ('Tap' in model3.json)."
+    },
+    {
+      "label": "REACTION: look_away",
+      "type": "reaction",
+      "verdict": "Revise",
+      "human_quote": "the other 3 reactions look exactly like idle",
+      "agent_diagnosis": "look_away.motion3.json is registered as 'LookAway' in majo.model3.json and drives ParamEyeBallX (+0.6, 60% of ±1.0 range), ParamEyeBallY (+0.15), and ParamAngleY (+7, 23% of ±30 range). The idle motion does not drive any of these parameters, so the deflections should be visible above idle. Same root-cause suspicion as nod: the cue sequencer label 'look_away' may not match the registered group name 'LookAway' (different casing and underscore vs camelCase), causing a lookup miss. If the lookup fails, no motion is triggered and the model continues playing idle — which exactly matches 'looks like idle'. The amplitude of look_away is adequate (0.6 gaze shift and 7-degree head turn are clearly perceptible).",
+      "proposed_fix": null,
+      "clarification_needed": "Same as nod: confirm whether the cue sequencer maps 'look_away' to 'LookAway' correctly (underscore vs camelCase, case sensitivity). Also confirm motion priority >= 2 when triggering. If the sequencer is doing exact case-sensitive matching, the group name in majo.model3.json must be changed from 'LookAway' to 'look_away', or the sequencer mapping must be updated."
+    },
+    {
+      "label": "REACTION: tap",
+      "type": "reaction",
+      "verdict": "Revise",
+      "human_quote": "the other 3 reactions look exactly like idle",
+      "agent_diagnosis": "tap.motion3.json is registered as 'Tap' in majo.model3.json and drives ParamAngleZ (peak +8, 27% of ±30 range) and ParamAngleX (peak -3, 10% of ±30 range) with a damped oscillation. The idle motion does not drive ParamAngleZ or ParamAngleX at all, so the +8 degree roll jolt should be clearly visible. The amplitude is sufficient. Same suspected root cause: cue label 'tap' vs registered group name 'Tap' — case-sensitive lookup miss in the sequencer causing fallthrough to idle.",
+      "proposed_fix": null,
+      "clarification_needed": "Same as nod and look_away: confirm cue sequencer label-to-group-name resolution ('tap' vs 'Tap') and motion priority level. If the sequencer uses exact lowercase matching, either rename 'Tap' to 'tap' in majo.model3.json or update the sequencer mapping table."
+    }
+  ]
+}

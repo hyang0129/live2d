@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "_description": "Example: embarrassed expression (enhancement tier). NOTE: embarrassed .exp3.json was dropped during majo initial onboarding — must be authored before this renders correctly.",
+  "model": {
+    "id": "majo",
+    "path": "assets/models/majo/majo.model3.json"
+  },
+  "audio": "spec/v1/behaviour-examples/audio/silence_5s.wav",
+  "output": "spec/v1/behaviour-examples/renders/expression_embarrassed.mp4",
+  "resolution": [1080, 1920],
+  "fps": 30,
+  "background": "transparent",
+  "lipsync": [],
+  "cues": [
+    { "time": 0.0, "emotion": "neutral" },
+    { "time": 2.0, "emotion": "embarrassed" },
+    { "time": 4.0, "emotion": "neutral" }
+  ]
+}

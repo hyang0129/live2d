@@ -1,0 +1,155 @@
+{
+  "round": 2,
+  "process_notes": [
+    "Human timestamps in feedback are delayed by approximately 0.5s relative to actual motion trigger time. A -0.5s correction is applied in all diagnoses below.",
+    "The idle reaction clip was not included in round 1 render; include it as a baseline in future render batches.",
+    "Pad end of each rendered video with an extra 5 seconds of idle."
+  ],
+  "known_limitations": [
+    {
+      "id": "cubism_breath_snap",
+      "description": "CubismBreath controls ParamAngleX/Y/Z continuously on a sine cycle. When a reaction motion ends, CubismBreath immediately resumes at whatever phase it is currently at, creating a discontinuity (snap or jolt) at blend-out. Increasing FadeOutTime softens but does not eliminate this. A full fix requires renderer-side motion blend-out logic that reads the current CubismBreath phase and interpolates from it. Documented as an open risk for all reaction clips."
+    }
+  ],
+  "clips": [
+    {
+      "label": "EXPRESSION: neutral",
+      "type": "expression",
+      "verdict": "Approved",
+      "human_quote": null,
+      "agent_diagnosis": "Not reviewed in round 2. Carried forward as approved from round 1.",
+      "proposed_fix": null
+    },
+    {
+      "label": "EXPRESSION: happy",
+      "type": "expression",
+      "verdict": "Approved",
+      "human_quote": null,
+      "agent_diagnosis": "Not reviewed in round 2. Carried forward as approved from round 1.",
+      "proposed_fix": null
+    },
+    {
+      "label": "EXPRESSION: surprised",
+      "type": "expression",
+      "verdict": "Approved",
+      "human_quote": null,
+      "agent_diagnosis": "Not reviewed in round 2. Carried forward as approved from round 1.",
+      "proposed_fix": null
+    },
+    {
+      "label": "EXPRESSION: bored",
+      "type": "expression",
+      "verdict": "Approved",
+      "human_quote": null,
+      "agent_diagnosis": "Not reviewed in round 2. Carried forward as approved from round 1.",
+      "proposed_fix": null
+    },
+    {
+      "label": "EXPRESSION: sad",
+      "type": "expression",
+      "verdict": "Approved",
+      "human_quote": null,
+      "agent_diagnosis": "Not reviewed in round 2. Carried forward as approved from round 1.",
+      "proposed_fix": null
+    },
+    {
+      "label": "EXPRESSION: angry",
+      "type": "expression",
+      "verdict": "Approved",
+      "human_quote": null,
+      "agent_diagnosis": "Not reviewed in round 2. Carried forward as approved from round 1.",
+      "proposed_fix": null
+    },
+    {
+      "label": "EXPRESSION: curious",
+      "type": "expression",
+      "verdict": "Approved",
+      "human_quote": "curious is good",
+      "agent_diagnosis": "Round 1 fix (adding ParamEyeLOpen=1.1 Multiply and ParamEyeROpen=1.1 Multiply to force wide-open eyes) resolved the confusion with sad. Reviewer confirmed the expression reads correctly.",
+      "proposed_fix": null
+    },
+    {
+      "label": "EXPRESSION: embarrassed",
+      "type": "expression",
+      "verdict": "Approved",
+      "human_quote": "embarrassed is about as good as you can get without a blush. Can you investigate if blush is possible by transposing the blush that the shiori model uses?",
+      "agent_diagnosis": "Round 1 fix (reversing brow direction to ParamBrowLY=+0.5, softening ParamBrowLForm=+0.3, shifting mouth to ParamMouthForm=+0.6) resolved the angry-read. Reviewer approved the expression as the best achievable without a blush parameter. Blush investigation (transposing shiori model blush) is noted as a separate pending task and does not block approval of the current expression.",
+      "proposed_fix": null,
+      "open_tasks": [
+        "Investigate whether the blush texture/parameter from the shiori model can be transposed to the majo model. This is a separate art/rigging task and does not block current approval."
+      ]
+    },
+    {
+      "label": "REACTION: idle",
+      "type": "reaction",
+      "verdict": "Approved",
+      "human_quote": null,
+      "agent_diagnosis": "Not reviewed in round 2. Carried forward as approved from round 1. Idle will be included as a baseline clip in future render batches per process notes.",
+      "proposed_fix": null
+    },
+    {
+      "label": "REACTION: nod",
+      "type": "reaction",
+      "verdict": "Revise",
+      "human_quote": "ok for nod its a lot of motion, but most of the motion is smooth and not jerky (tho sometimes very fast). At 0.63 the model is looking very far to the right, almost like they are trying to look behind themselves. At 1.36 her head swings to the middle and appears to be looking upwards. At 1.86 she is back to the same position as 0.63. At around 2.1 she makes a very unnatural and jerky motion to look at the camera, with a slight leftward tilt. At 2.9 she is now looking down and to the right. However, this movement was also very jerky.",
+      "agent_diagnosis": "Applying -0.5s correction to human timestamps: far-right idle position at ~t=0.13s actual is CubismBreath at an off-center phase — the 1s idle baseline before the reaction was too short to show a full breath cycle, making the extreme position appear unexpected. Jerky transition at ~t=1.6s actual (reported 2.1s) and ~t=2.4s actual (reported 2.9s) are CubismBreath snapping back when the nod motion ends (see known limitation: cubism_breath_snap). ParamAngleX peak of -10 degrees (33% of ±30 range) is confirmed too large — reviewer notes 'a lot of motion'. FadeOutTime of 0.3s is too short, causing abrupt snap-back.",
+      "proposed_fix": {
+        "file": "assets/models/majo/motions/nod.motion3.json",
+        "changes": [
+          {
+            "param": "ParamAngleX",
+            "field": "peak_value",
+            "from": -10,
+            "to": -7,
+            "rationale": "Reduce amplitude from 33% to 23% of ±30 range to address 'a lot of motion' feedback."
+          },
+          {
+            "param": "nod motion",
+            "field": "FadeOutTime",
+            "from": 0.3,
+            "to": 0.5,
+            "rationale": "Increase fade-out duration to soften CubismBreath snap-back discontinuity at motion end."
+          }
+        ]
+      }
+    },
+    {
+      "label": "REACTION: look_away",
+      "type": "reaction",
+      "verdict": "Revise",
+      "human_quote": "1s she is in the same position as the nod at 1s. 1.63 her eyes look towards the camera. 2.4 her head gently moves downwards. 2.5 her head snaps back into the same tilted look as around 2.9 in nod. 3.7 she resets smoothly into a neutral straight to camera look. 4.23 she makes a very jerky motion to look left with her face but her eyes are looking toward the viewer.",
+      "agent_diagnosis": "Applying -0.5s correction: eyes moving toward camera at ~t=1.13s actual (reported 1.63s) and head moving downward at ~t=1.9s actual (reported 2.4s) are consistent with the look_away keyframe sequence — the core gaze-shift and head-follow motion is working correctly. Snap at ~t=2.0s actual (reported 2.5s) is CubismBreath resuming AngleX/Y/Z when look_away motion ends (see known limitation: cubism_breath_snap). Smooth reset at ~t=3.2s actual (reported 3.7s) is CubismBreath continuing its cycle — this one happens to be smooth by phase coincidence. Jerky motion at ~t=3.73s actual (reported 4.23s) is CubismBreath creating a large oscillation coincidentally at that cycle phase; it is not a keyframe artifact. No changes to keyframe values are needed — the motion content reads correctly. Only FadeOutTime needs to increase.",
+      "proposed_fix": {
+        "file": "assets/models/majo/motions/look_away.motion3.json",
+        "changes": [
+          {
+            "param": "look_away motion",
+            "field": "FadeOutTime",
+            "from": 0.4,
+            "to": 0.6,
+            "rationale": "Increase fade-out duration to soften CubismBreath snap-back at motion end. No keyframe value changes — the motion content is correct."
+          }
+        ]
+      }
+    },
+    {
+      "label": "REACTION: tap",
+      "type": "reaction",
+      "verdict": "Revise",
+      "human_quote": "1s she is in the same position as nod and look away at 1s. 1.3 her head jerks into a leftward tilt. 1.4 does a slight head wobble tilting back and forth. 2 appears to be smoothly going back to same position as 1s. 2.3 appears to snap to look forward and down slightly, very jerky. 3.7 she looks down and to the right then does some sort of rising motion to look to her left.",
+      "agent_diagnosis": "Applying -0.5s correction: leftward jolt at ~t=0.8s actual (reported 1.3s) and head wobble at ~t=0.9s actual (reported 1.4s) are the intended tap response — jolt and damped oscillation are working as designed. Smooth return at ~t=1.5s actual (reported 2.0s) is the keyframe fade-back. Snap at ~t=1.8s actual (reported 2.3s) is CubismBreath resuming when the tap motion ends (see known limitation: cubism_breath_snap). The down-right position and rising motion at ~t=3.2s actual (reported 3.7s) are CubismBreath continuing its cycle. FadeOutTime of 0.3s is too short, causing the snap.",
+      "proposed_fix": {
+        "file": "assets/models/majo/motions/tap.motion3.json",
+        "changes": [
+          {
+            "param": "tap motion",
+            "field": "FadeOutTime",
+            "from": 0.3,
+            "to": 0.5,
+            "rationale": "Increase fade-out duration to soften CubismBreath snap-back at motion end. Jolt and wobble are working correctly and require no changes."
+          }
+        ]
+      }
+    }
+  ]
+}

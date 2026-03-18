@@ -5,9 +5,9 @@
 		"Fps": 60.0,
 		"Loop": true,
 		"AreBeziersRestricted": false,
-		"CurveCount": 9,
-		"TotalSegmentCount": 35,
-		"TotalPointCount": 90,
+		"CurveCount": 7,
+		"TotalSegmentCount": 27,
+		"TotalPointCount": 78,
 		"UserDataCount": 0,
 		"TotalUserDataSize": 0
 	},
@@ -235,50 +235,6 @@
 				19.902,
 				2.983,
 				25
-			]
-		},
-		{
-			"Target": "Parameter",
-			"Id": "ParamEyeBallX",
-			"FadeInTime": 0.0,
-			"FadeOutTime": 0.0,
-			"Segments": [
-				0,
-				0,
-				0,
-				0.75,
-				0.2,
-				0,
-				1.5,
-				0,
-				0,
-				2.25,
-				-0.2,
-				0,
-				2.983,
-				0
-			]
-		},
-		{
-			"Target": "Parameter",
-			"Id": "ParamEyeBallY",
-			"FadeInTime": 0.0,
-			"FadeOutTime": 0.0,
-			"Segments": [
-				0,
-				-0.1,
-				0,
-				0.55,
-				-0.2,
-				0,
-				1.5,
-				0.15,
-				0,
-				2.4,
-				0.2,
-				0,
-				2.983,
-				-0.1
 			]
 		}
 	]

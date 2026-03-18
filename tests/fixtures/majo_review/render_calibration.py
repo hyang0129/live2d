@@ -1,0 +1,322 @@
+#!/usr/bin/env python3
+"""
+Calibration renders — idle and nod only.
+
+Clip 1: idle (8s)
+  - emotion=neutral at t=0, idle reaction at t=0
+  - Verifies breath accumulation bug is fixed (gentle oscillation, NOT wild)
+
+Clip 2: nod (12s)
+  - 3s idle baseline
+  - nod reaction at t=3s
+  - 8s tail for recovery / return to idle
+  - AngleY=0 and AngleZ=0 hold keyframes in the nod motion suppress lateral sway
+"""
+
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+# ── paths ──────────────────────────────────────────────────────────────────────
+ROOT     = Path("/workspaces/hub_1/live2d")
+RENDERER = Path("/tmp/live2d_build/live2d-render")
+OUT_DIR  = ROOT / "tests/fixtures/majo_review"
+TMP_DIR  = OUT_DIR / "_tmp_calibration"
+FINAL    = OUT_DIR / "calibration.mp4"
+
+TOTAL_CLIPS  = 2
+HEADER_LINE1 = "MAJO CALIBRATION — IDLE + NOD"
+
+# ── clip definitions ───────────────────────────────────────────────────────────
+CLIPS = [
+    # ── 1. idle (8s) ──────────────────────────────────────────────────────────
+    {
+        "index":    1,
+        "stem":     "calibration_idle",
+        "label2":   (
+            "REACTION: idle — 8s baseline. "
+            "Verify gentle oscillation (NOT exaggerated). "
+            "This is normal CubismBreath only."
+        ),
+        "duration": 8.0,
+        "cues": [
+            {"time": 0.0, "emotion": "neutral"},
+            {"time": 0.0, "reaction": "idle"},
+            {"time": 7.0, "reaction": "idle"},   # terminal hold → 8s
+        ],
+    },
+
+    # ── 2. nod (12s) ──────────────────────────────────────────────────────────
+    {
+        "index":    2,
+        "stem":     "calibration_nod",
+        "label2":   (
+            "REACTION: nod — fires at t=3.0s. "
+            "Should be a clean forward head dip (chin down), NOT left-right. "
+            "AngleY/Z held at 0 during nod to suppress lateral sway."
+        ),
+        "duration": 12.0,
+        "cues": [
+            {"time":  0.0, "emotion": "neutral"},
+            {"time":  0.0, "reaction": "idle"},
+            {"time":  3.0, "reaction": "nod"},
+            {"time": 11.0, "reaction": "idle"},   # terminal hold → 12s
+        ],
+    },
+]
+
+
+def escape_drawtext(text: str) -> str:
+    """Escape text for FFmpeg drawtext filter."""
+    text = text.replace("\\", "\\\\")
+    text = text.replace("'",  "\\'")
+    text = text.replace(":",  "\\:")
+    text = text.replace("[",  "\\[")
+    text = text.replace("]",  "\\]")
+    return text
+
+
+def render_raw(clip: dict, raw_path: Path) -> tuple[bool, str]:
+    """Write manifest and invoke renderer. Returns (success, log_text)."""
+    manifest = {
+        "schema_version": "1.0",
+        "model": {"id": "majo"},
+        "audio": None,
+        "output": str(raw_path.relative_to(ROOT)),
+        "resolution": [1280, 720],
+        "fps": 30,
+        "background": "#1a1a2e",
+        "lipsync": [],
+        "cues": clip["cues"],
+    }
+
+    manifest_path = TMP_DIR / f"clip_{clip['index']:02d}_manifest.json"
+    manifest_path.write_text(json.dumps(manifest, indent=2))
+
+    print(f"  Rendering [{clip['index']}/{TOTAL_CLIPS}] {clip['stem']} ({clip['duration']}s) ...")
+    result = subprocess.run(
+        [str(RENDERER), "--scene", str(manifest_path.relative_to(ROOT))],
+        cwd=str(ROOT),
+        capture_output=True,
+    )
+
+    log = result.stdout.decode(errors="replace") + result.stderr.decode(errors="replace")
+
+    if result.returncode != 0:
+        print(f"  ERROR: renderer exited {result.returncode}", file=sys.stderr)
+        print(log, file=sys.stderr)
+        return False, log
+
+    if not raw_path.exists():
+        print(f"  ERROR: output not produced: {raw_path}", file=sys.stderr)
+        return False, log
+
+    return True, log
+
+
+def annotate_clip(clip: dict, raw_path: Path, out_path: Path) -> bool:
+    """Burn header, timestamp, and clip-index annotations onto the raw clip."""
+    h1_esc  = escape_drawtext(HEADER_LINE1)
+    h2_esc  = escape_drawtext(clip["label2"])
+    idx_str = escape_drawtext(f"[{clip['index']}/{TOTAL_CLIPS}]")
+
+    vf_parts = [
+        # Black header bar ~110px
+        "drawbox=x=0:y=0:w=iw:h=110:color=black@0.7:t=fill",
+
+        # Line 1: main header, bold white ~28pt, y=12
+        f"drawtext=text='{h1_esc}'"
+        f":fontsize=28:fontcolor=white:fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+        f":x=(w-tw)/2:y=12:box=0",
+
+        # Line 2: clip description, white ~18pt, y=52
+        f"drawtext=text='{h2_esc}'"
+        f":fontsize=18:fontcolor=white"
+        f":x=(w-tw)/2:y=52:box=0",
+
+        # Timestamp bottom-right: t=X.XXs
+        "drawtext=text='t\\=%{eif\\:t\\:d}.%{eif\\:mod(t*100\\,100)\\:d}s'"
+        ":fontsize=28:fontcolor=white"
+        ":x=w-tw-20:y=h-50"
+        ":box=1:boxcolor=black@0.7:boxborderw=8",
+
+        # Clip index bottom-left
+        f"drawtext=text='{idx_str}'"
+        f":fontsize=28:fontcolor=white"
+        f":x=20:y=h-50"
+        f":box=1:boxcolor=black@0.7:boxborderw=8",
+    ]
+
+    vf = ",".join(vf_parts)
+
+    result = subprocess.run(
+        [
+            "ffmpeg", "-y",
+            "-i", str(raw_path),
+            "-vf", vf,
+            "-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p",
+            "-an",
+            str(out_path),
+        ],
+        cwd=str(ROOT),
+        capture_output=True,
+    )
+    if result.returncode != 0:
+        print(f"  ERROR: ffmpeg annotation exited {result.returncode}", file=sys.stderr)
+        print(result.stderr.decode(errors="replace"), file=sys.stderr)
+        return False
+    return True
+
+
+def get_duration(path: Path) -> float:
+    result = subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "v:0",
+         "-show_entries", "stream=duration",
+         "-of", "default=noprint_wrappers=1:nokey=1",
+         str(path)],
+        capture_output=True, text=True,
+    )
+    try:
+        return float(result.stdout.strip())
+    except ValueError:
+        return 0.0
+
+
+def get_size_kb(path: Path) -> int:
+    return path.stat().st_size // 1024
+
+
+def extract_log_lines(log: str, reaction: str) -> list[str]:
+    """Pull out relevant renderer log lines for a reaction cue."""
+    keywords = [
+        f'reaction \u2192 "{reaction}"',
+        f'reaction "{reaction}"',
+        "TriggerMotion",
+        "Cue t=",
+        "not found",
+        "skipped",
+        "not in model",
+        "warn",
+        "WARN",
+        "WARNING",
+        "accumul",
+    ]
+    lines = []
+    for line in log.splitlines():
+        if any(kw.lower() in line.lower() for kw in keywords):
+            lines.append(line)
+    return lines
+
+
+def main():
+    TMP_DIR.mkdir(parents=True, exist_ok=True)
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    if not RENDERER.exists():
+        print(f"ERROR: renderer not found at {RENDERER}", file=sys.stderr)
+        sys.exit(1)
+
+    rendered = []   # (clip, annotated_path, duration, log)
+    failed   = []
+    all_logs = {}
+
+    for clip in CLIPS:
+        raw_path = TMP_DIR / f"clip_{clip['index']:02d}_raw.mp4"
+        ann_path = OUT_DIR / f"{clip['stem']}.mp4"
+
+        ok, log = render_raw(clip, raw_path)
+        all_logs[clip["stem"]] = log
+
+        if not ok:
+            failed.append((clip["stem"], "render failed"))
+            continue
+
+        ok = annotate_clip(clip, raw_path, ann_path)
+        if not ok:
+            failed.append((clip["stem"], "annotation failed"))
+            continue
+
+        dur = get_duration(ann_path)
+        rendered.append((clip, ann_path, dur, log))
+        print(f"  OK: {clip['stem']} — {dur:.2f}s  ({get_size_kb(ann_path)} KB)")
+
+    if not rendered:
+        print("ERROR: No clips rendered successfully.", file=sys.stderr)
+        # Print full logs for debugging
+        for stem, log in all_logs.items():
+            print(f"\n--- Log for {stem} ---", file=sys.stderr)
+            print(log, file=sys.stderr)
+        sys.exit(1)
+
+    # ── concatenate annotated clips ─────────────────────────────────────────────
+    concat_list = TMP_DIR / "concat_calibration.txt"
+    with open(concat_list, "w") as fh:
+        for _, ap, _, _ in rendered:
+            fh.write(f"file '{ap}'\n")
+
+    print(f"\nConcatenating {len(rendered)} clips into calibration.mp4 ...")
+    result = subprocess.run(
+        [
+            "ffmpeg", "-y",
+            "-f", "concat", "-safe", "0",
+            "-i", str(concat_list),
+            "-c", "copy",
+            str(FINAL),
+        ],
+        cwd=str(ROOT),
+        capture_output=True,
+    )
+    if result.returncode != 0:
+        print(f"ERROR: ffmpeg concat exited {result.returncode}", file=sys.stderr)
+        print(result.stderr.decode(errors="replace"), file=sys.stderr)
+        sys.exit(result.returncode)
+
+    # ── report ──────────────────────────────────────────────────────────────────
+    total_dur  = sum(d for _, _, d, _ in rendered)
+    final_size = get_size_kb(FINAL)
+
+    print(f"\n{'='*70}")
+    print("DONE — calibration.mp4")
+    print(f"  Output : {FINAL}")
+    print(f"  Size   : {final_size} KB")
+    print(f"  Total  : {total_dur:.2f}s  ({len(rendered)}/{TOTAL_CLIPS} clips)")
+    print()
+    print("Per-clip summary:")
+    for clip, ap, dur, log in rendered:
+        size_kb = get_size_kb(ap)
+        print(f"  [{clip['index']}/{TOTAL_CLIPS}] {clip['stem']}  duration={dur:.2f}s  size={size_kb} KB")
+
+        # Log lines for idle clip (warnings / breath accumulation signals)
+        if clip["stem"] == "calibration_idle":
+            warn_lines = [ln for ln in log.splitlines()
+                          if any(kw in ln.lower() for kw in ["warn", "accumul", "breath"])]
+            if warn_lines:
+                print(f"    Warnings during idle:")
+                for ln in warn_lines:
+                    print(f"      {ln}")
+            else:
+                print(f"    No warnings during idle (good)")
+
+        # Reaction trigger confirmation for nod
+        if clip["stem"] == "calibration_nod":
+            relevant = extract_log_lines(log, "nod")
+            if relevant:
+                print(f"    Reaction log lines for 'nod':")
+                for ln in relevant:
+                    print(f"      {ln}")
+            else:
+                print(f"    [no nod-specific log lines found]")
+                print(f"    Full log (first 40 lines):")
+                for ln in log.splitlines()[:40]:
+                    print(f"      {ln}")
+
+    if failed:
+        print(f"\nFailed ({len(failed)}):")
+        for stem, reason in failed:
+            print(f"  {stem}: {reason}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

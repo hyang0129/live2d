@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "model": {
+    "id": "majo",
+    "path": "assets/models/majo/majo.model3.json"
+  },
+  "audio": null,
+  "output": "tests/fixtures/majo_cue_test_output.mp4",
+  "resolution": [1280, 720],
+  "fps": 30,
+  "background": "transparent",
+  "lipsync": [],
+  "cues": [
+    { "time": 0.0, "emotion": "neutral" },
+    { "time": 1.0, "head": { "pitch": 15, "yaw": -10, "roll": 0 } },
+    { "time": 2.5, "gaze": { "x": 0.6, "y": 0.0 } },
+    { "time": 3.0, "head": { "pitch": -10, "yaw": 15, "roll": 0 } },
+    { "time": 4.5, "emotion": "happy" },
+    { "time": 4.5, "reaction": "idle" }
+  ]
+}

@@ -1,5 +1,7 @@
 {
 	"Type": "Live2D Expression",
+	"FadeInTime": 0.2,
+	"FadeOutTime": 0.4,
 	"Parameters": [
 		{ "Id": "ParamMouthForm", "Value": 0.27, "Blend": "Add" }
 	]

@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "_description": "Example: neutral expression. Resting default state. Scene starts at neutral, briefly shows happy as contrast, returns to neutral.",
+  "model": {
+    "id": "majo",
+    "path": "assets/models/majo/majo.model3.json"
+  },
+  "audio": "spec/v1/behaviour-examples/audio/silence_5s.wav",
+  "output": "spec/v1/behaviour-examples/renders/expression_neutral.mp4",
+  "resolution": [1080, 1920],
+  "fps": 30,
+  "background": "transparent",
+  "lipsync": [],
+  "cues": [
+    { "time": 0.0, "emotion": "neutral" }
+  ]
+}

@@ -1,0 +1,303 @@
+{
+  "spec_version": "1.0",
+  "date": "2026-03-17",
+  "description": "Avatar Behaviour Spec v1 — machine-readable definition of the minimum behaviour vocabulary every registered Live2D model must support. Consumed by video_agent (AvatarCueAgent) to validate cue generation and by authoring agents during model onboarding.",
+
+  "tiers": {
+    "mandatory": "Required for spec compliance. Absence is a hard failure during model onboarding.",
+    "threshold": "Required to meet the NPC realism threshold. Absence makes the model appear cheap or limited.",
+    "enhancement": "Optional. Adds richness but not required for threshold compliance."
+  },
+
+  "renderer_provided": {
+    "description": "Behaviours the renderer supplies automatically for any compliant model. video_agent must NOT emit explicit cues for these — they run unconditionally.",
+    "behaviours": [
+      {
+        "id": "auto_blink",
+        "description": "CubismEyeBlink fires every 3–6 s when the model has an EyeBlink parameter group.",
+        "mechanism": "CubismEyeBlink"
+      },
+      {
+        "id": "ambient_head_drift",
+        "description": "Sinusoidal breathing-driven head sway on AngleX/Y/Z/BodyAngleX. Always active.",
+        "mechanism": "CubismBreath"
+      },
+      {
+        "id": "breathing_sway",
+        "description": "Body breathing cycle driven by the same CubismBreath instance as head drift.",
+        "mechanism": "CubismBreath"
+      },
+      {
+        "id": "expression_crossfade",
+        "description": "Expression transitions use fade in/out timing from .exp3.json files. No snaps.",
+        "mechanism": "CubismExpressionMotionManager"
+      },
+      {
+        "id": "idle_loop",
+        "description": "Idle_0 motion restarts automatically whenever no higher-priority motion is playing.",
+        "mechanism": "motion priority system"
+      }
+    ]
+  },
+
+  "expressions": [
+    {
+      "label": "neutral",
+      "tier": "mandatory",
+      "semantic": "Default resting state. Calm and composed. Use as a reset between other expressions.",
+      "when_to_use": "Scene start, pauses, topic transitions, any moment without strong emotional valence.",
+      "facial_regions": {
+        "brow": "Resting / level",
+        "eye": "Resting openness (~0.9)",
+        "mouth": "Flat or slight upward curve"
+      },
+      "cue": { "emotion": "neutral" },
+      "example_file": "spec/v1/behaviour-examples/expression_neutral.json",
+      "video": null,
+      "video_todo": "Add video clip once majo behaviour authoring is complete."
+    },
+    {
+      "label": "happy",
+      "tier": "mandatory",
+      "semantic": "Warm positive emotion. Elevated joy — more intense than a neutral smile.",
+      "when_to_use": "Good news, laughter, warm moments, affirmation, sharing something exciting.",
+      "facial_regions": {
+        "brow": "Raised",
+        "eye": "Squint / Duchenne marker (eyes smile)",
+        "mouth": "Upward curve"
+      },
+      "cue": { "emotion": "happy" },
+      "example_file": "spec/v1/behaviour-examples/expression_happy.json",
+      "video": null,
+      "video_todo": "Add video clip once majo behaviour authoring is complete."
+    },
+    {
+      "label": "serious",
+      "tier": "mandatory",
+      "semantic": "Focus or emphasis. Not angry — deliberate concentration or gravity.",
+      "when_to_use": "Important points, warnings, instructions, moments requiring authority.",
+      "facial_regions": {
+        "brow": "Lowered (not furrowed — purposeful, not hostile)",
+        "eye": "Slight reduction in openness",
+        "mouth": "Flat or slight downward"
+      },
+      "cue": { "emotion": "serious" },
+      "example_file": "spec/v1/behaviour-examples/expression_serious.json",
+      "video": null,
+      "video_todo": "Add video clip once majo behaviour authoring is complete.",
+      "note": "majo maps this to an authored .exp3.json that does not yet exist. Must be authored during majo spec build."
+    },
+    {
+      "label": "surprised",
+      "tier": "mandatory",
+      "semantic": "Shock or astonishment. Sudden unexpected information.",
+      "when_to_use": "Unexpected reveals, sudden facts, startled reactions.",
+      "facial_regions": {
+        "brow": "Raised high",
+        "eye": "Widened",
+        "mouth": "Slight open"
+      },
+      "cue": { "emotion": "surprised" },
+      "example_file": "spec/v1/behaviour-examples/expression_surprised.json",
+      "video": null,
+      "video_todo": "Add video clip once majo behaviour authoring is complete."
+    },
+    {
+      "label": "sad",
+      "tier": "threshold",
+      "semantic": "Disappointment, empathy, or somber tone.",
+      "when_to_use": "Bad news, losses, empathetic listening, regret.",
+      "facial_regions": {
+        "brow": "Arched inward (worried shape)",
+        "eye": "Softened / reduced openness",
+        "mouth": "Downturned"
+      },
+      "cue": { "emotion": "sad" },
+      "example_file": "spec/v1/behaviour-examples/expression_sad.json",
+      "video": null,
+      "video_todo": "Add video clip once majo behaviour authoring is complete."
+    },
+    {
+      "label": "angry",
+      "tier": "threshold",
+      "semantic": "Frustration, irritation, or confrontation. Strong negative emotion.",
+      "when_to_use": "Injustice, strong disagreement, frustration with a situation (not the viewer).",
+      "facial_regions": {
+        "brow": "Furrowed down",
+        "eye": "Narrowed",
+        "mouth": "Tight downturned or open with tension"
+      },
+      "cue": { "emotion": "angry" },
+      "example_file": "spec/v1/behaviour-examples/expression_angry.json",
+      "video": null,
+      "video_todo": "Add video clip once majo behaviour authoring is complete."
+    },
+    {
+      "label": "bored",
+      "tier": "enhancement",
+      "semantic": "Disengagement or mild disdain. Heavy-lidded uninterested look.",
+      "when_to_use": "Sarcasm, impatience, obvious statements, comedic deflation.",
+      "facial_regions": {
+        "brow": "Flat / heavy",
+        "eye": "Heavy-lidded (~0.5 openness)",
+        "mouth": "Flat"
+      },
+      "cue": { "emotion": "bored" },
+      "example_file": "spec/v1/behaviour-examples/expression_bored.json",
+      "video": null,
+      "video_todo": "Add video clip once majo behaviour authoring is complete."
+    },
+    {
+      "label": "curious",
+      "tier": "enhancement",
+      "semantic": "Mild interest or attentiveness. Lighter than surprise.",
+      "when_to_use": "Listening beats, gentle reactions, rhetorical questions.",
+      "facial_regions": {
+        "brow": "One or both slightly raised",
+        "eye": "Normal openness",
+        "mouth": "Slight corner lift"
+      },
+      "cue": { "emotion": "curious" },
+      "example_file": "spec/v1/behaviour-examples/expression_curious.json",
+      "video": null,
+      "video_todo": "Add video clip once majo behaviour authoring is complete."
+    },
+    {
+      "label": "embarrassed",
+      "tier": "enhancement",
+      "semantic": "Flustered or self-conscious. Awkward warmth.",
+      "when_to_use": "Compliments, self-deprecating moments, awkward situations.",
+      "facial_regions": {
+        "brow": "Raised",
+        "eye": "Averted / partially closed",
+        "mouth": "Strained smile"
+      },
+      "cue": { "emotion": "embarrassed" },
+      "example_file": "spec/v1/behaviour-examples/expression_embarrassed.json",
+      "video": null,
+      "video_todo": "Add video clip once majo behaviour authoring is complete."
+    }
+  ],
+
+  "reactions": [
+    {
+      "label": "idle",
+      "tier": "mandatory",
+      "semantic": "Default ambient loop. Breathing, sway, subtle head drift, ambient gaze variation.",
+      "when_to_use": "Runs automatically. Do not emit explicit idle cues — the renderer manages idle restart.",
+      "duration_s": null,
+      "loops": true,
+      "key_parameters": ["AngleX", "AngleY", "AngleZ", "BodyAngleX", "ParamEyeBallX", "ParamEyeBallY"],
+      "cue": null,
+      "example_file": null,
+      "video": null,
+      "video_todo": "Add video clip once majo idle motion quality is verified."
+    },
+    {
+      "label": "nod",
+      "tier": "threshold",
+      "semantic": "Discourse acknowledgement. Signals agreement or sentence completion. Highest-ROI single reaction.",
+      "when_to_use": "Sentence boundaries in speech, affirmations, agreement beats, listening acknowledgements.",
+      "duration_s": 0.5,
+      "loops": false,
+      "key_parameters": ["ParamAngleX"],
+      "cue": { "reaction": "nod" },
+      "example_file": "spec/v1/behaviour-examples/reaction_nod.json",
+      "video": null,
+      "video_todo": "Add video clip once majo nod motion is authored and approved."
+    },
+    {
+      "label": "look_away",
+      "tier": "threshold",
+      "semantic": "Deliberate gaze break. Conveys thinking, recalling, or internal processing. Breaks camera lock.",
+      "when_to_use": "Recall moments ('let me think...'), rhetorical pauses, moments of internal reflection.",
+      "duration_s": 1.5,
+      "loops": false,
+      "key_parameters": ["ParamEyeBallX", "ParamEyeBallY", "ParamAngleY"],
+      "cue": { "reaction": "look_away" },
+      "example_file": "spec/v1/behaviour-examples/reaction_look_away.json",
+      "video": null,
+      "video_todo": "Add video clip once majo look_away motion is authored and approved.",
+      "note": "Must use smooth keyframe curves on ParamEyeBallX/Y — not a raw gaze cue snap. Head follow (AngleY) keyframes should be offset ~150 ms after eye movement and at ~30–40% amplitude."
+    },
+    {
+      "label": "tap",
+      "tier": "threshold",
+      "semantic": "Startled or responsive jolt. Reaction to an unexpected interruption or touch.",
+      "when_to_use": "Sudden topic changes, startled reactions, comedic timing beats.",
+      "duration_s": 1.0,
+      "loops": false,
+      "key_parameters": ["ParamAngleZ"],
+      "cue": { "reaction": "tap" },
+      "example_file": "spec/v1/behaviour-examples/reaction_tap.json",
+      "video": null,
+      "video_todo": "Add video clip once majo tap motion is authored and approved."
+    },
+    {
+      "label": "shake",
+      "tier": "enhancement",
+      "semantic": "Negative head shake. Signals disagreement or refusal.",
+      "when_to_use": "Disagreement, corrections, 'no' responses, refusal.",
+      "duration_s": 0.8,
+      "loops": false,
+      "key_parameters": ["ParamAngleZ"],
+      "cue": { "reaction": "shake" },
+      "example_file": "spec/v1/behaviour-examples/reaction_shake.json",
+      "video": null,
+      "video_todo": "Add video clip once majo shake motion is authored and approved."
+    }
+  ],
+
+  "cue_types": {
+    "emotion": {
+      "description": "Blend to a named facial expression using CubismExpressionMotionManager. Transition is smooth — fade in/out timing comes from the .exp3.json file.",
+      "format": { "time": "<float: seconds from scene start>", "emotion": "<expression label>" },
+      "notes": "Always emit a 'neutral' cue at scene start (t=0). Always return to 'neutral' after a strong expression unless the next line continues the same emotion."
+    },
+    "reaction": {
+      "description": "Trigger a pre-built motion clip. Plays once at the given time, then the model returns to idle.",
+      "format": { "time": "<float: seconds from scene start>", "reaction": "<reaction label>" },
+      "notes": "Nod at sentence boundaries. look_away at thinking/recall moments. Do not stack reactions — allow previous reaction to complete before triggering another."
+    },
+    "gaze": {
+      "description": "Eye direction override via SetParameterValue — snaps instantly, no interpolation. Use only for held static positions.",
+      "format": { "time": "<float>", "gaze": { "x": "<float: -1.0 to 1.0>", "y": "<float: -1.0 to 1.0>" } },
+      "notes": "Do NOT use gaze cues for smooth transitions — they snap. Use the look_away reaction instead. Reserve raw gaze cues for held directional positions (e.g. consistently looking at an off-screen object)."
+    },
+    "head": {
+      "description": "Head angle override in degrees via SetParameterValue — snaps instantly. Interaction with CubismBreath is unverified; prefer reaction clips for head movement.",
+      "format": { "time": "<float>", "head": { "yaw": "<float: degrees>", "pitch": "<float: degrees>", "roll": "<float: degrees>" } },
+      "notes": "Use with caution. CubismBreath writes to the same AngleX/Y/Z parameters and may overwrite cue values. Smooth head movement should be authored into reaction clips, not driven by raw head cues."
+    }
+  },
+
+  "compliance": {
+    "minimum_expressions": ["neutral", "happy", "serious", "surprised"],
+    "threshold_expressions": ["neutral", "happy", "serious", "surprised", "sad", "angry"],
+    "minimum_reactions": ["idle", "nod", "look_away", "tap"],
+    "threshold_reactions": ["idle", "nod", "look_away", "tap"],
+    "expression_file_requirements": {
+      "FadeInTime_min_s": 0.15,
+      "FadeOutTime_min_s": 0.3,
+      "required_regions": ["brow", "eye", "mouth"]
+    },
+    "motion_file_requirements": {
+      "FadeInTime_min_s": 0.1,
+      "FadeOutTime_min_s": 0.1,
+      "parameter_source": "model .cdi3.json — never copied from another model"
+    },
+    "idle_motion_requirements": {
+      "min_duration_s": 3.0,
+      "required_parameters": ["ParamAngleX", "ParamAngleZ"],
+      "notes": "Must produce visible head movement. CubismBreath adds drift on top; idle motion must not hold a fixed target that fights the breath layer."
+    }
+  },
+
+  "versioning": [
+    {
+      "version": "1.0",
+      "date": "2026-03-17",
+      "changes": "Initial spec: 4 mandatory + 2 threshold expressions; idle + 3 threshold reactions; gaze via upstream cues only."
+    }
+  ]
+}

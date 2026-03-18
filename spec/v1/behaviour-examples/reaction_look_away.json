@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "_description": "Example: look_away reaction. Neutral expression throughout. look_away triggered at t=2. Duration ~1.5s so full recovery visible before end. NOTE: look_away .motion3.json must be authored for majo before this renders correctly. Key test: eye movement must be smooth arc, not a snap.",
+  "model": {
+    "id": "majo",
+    "path": "assets/models/majo/majo.model3.json"
+  },
+  "audio": "spec/v1/behaviour-examples/audio/silence_5s.wav",
+  "output": "spec/v1/behaviour-examples/renders/reaction_look_away.mp4",
+  "resolution": [1080, 1920],
+  "fps": 30,
+  "background": "transparent",
+  "lipsync": [],
+  "cues": [
+    { "time": 0.0, "emotion": "neutral" },
+    { "time": 2.0, "reaction": "look_away" }
+  ]
+}

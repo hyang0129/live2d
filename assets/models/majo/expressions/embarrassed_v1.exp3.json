@@ -7,7 +7,6 @@
 		{ "Id": "ParamEyeROpen",  "Value": 0.89, "Blend": "Multiply" },
 		{ "Id": "ParamBrowLY",    "Value": 0.5,  "Blend": "Add" },
 		{ "Id": "ParamBrowLForm", "Value": 0.3,  "Blend": "Add" },
-		{ "Id": "ParamMouthForm", "Value": 0.6,  "Blend": "Add" },
-		{ "Id": "Param21",       "Value": 0.5,  "Blend": "Add" }
+		{ "Id": "ParamMouthForm", "Value": 0.6,  "Blend": "Add" }
 	]
 }
