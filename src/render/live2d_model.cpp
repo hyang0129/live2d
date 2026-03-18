@@ -345,8 +345,43 @@ void Live2DModel::Update(float deltaTime, const MouthState& mouth, const CueStat
     _model->SetParameterValue(_idParamMouthOpenY, mouth.open, 0.8f);
     _model->SetParameterValue(_idParamMouthForm,  mouth.form, 0.8f);
 
-    // Breath and physics
-    if (_breath)  _breath->UpdateParameters(_model, deltaTime);
+    // Breath guard: suppress / blend breath during and after reaction motions (priority >= 2)
+    {
+        const int currentPriority = _motionManager->GetCurrentPriority();
+        if (currentPriority >= 2) {
+            _reactionFadeWeight = 1.0f;
+            _reactionWasActive  = true;
+        } else if (_reactionWasActive) {
+            _reactionFadeWeight -= deltaTime / 0.5f;
+            if (_reactionFadeWeight <= 0.0f) {
+                _reactionFadeWeight = 0.0f;
+                _reactionWasActive  = false;
+            }
+        }
+
+        if (_breath) {
+            if (_reactionFadeWeight > 0.0f) {
+                const float savedAngleX     = _model->GetParameterValue(_idParamAngleX);
+                const float savedAngleY     = _model->GetParameterValue(_idParamAngleY);
+                const float savedAngleZ     = _model->GetParameterValue(_idParamAngleZ);
+                const float savedBodyAngleX = _model->GetParameterValue(_idParamBodyAngleX);
+
+                _breath->UpdateParameters(_model, deltaTime);
+
+                const float w = _reactionFadeWeight;
+                _model->SetParameterValue(_idParamAngleX,
+                    _model->GetParameterValue(_idParamAngleX)     * (1.0f - w) + savedAngleX     * w);
+                _model->SetParameterValue(_idParamAngleY,
+                    _model->GetParameterValue(_idParamAngleY)     * (1.0f - w) + savedAngleY     * w);
+                _model->SetParameterValue(_idParamAngleZ,
+                    _model->GetParameterValue(_idParamAngleZ)     * (1.0f - w) + savedAngleZ     * w);
+                _model->SetParameterValue(_idParamBodyAngleX,
+                    _model->GetParameterValue(_idParamBodyAngleX) * (1.0f - w) + savedBodyAngleX * w);
+            } else {
+                _breath->UpdateParameters(_model, deltaTime);
+            }
+        }
+    }
     if (_physics) _physics->Evaluate(_model, deltaTime);
     if (_pose)    _pose->UpdateParameters(_model, deltaTime);
 

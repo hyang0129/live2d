@@ -95,4 +95,7 @@ private:
     std::vector<TexEntry> _textures;
 
     float _userTime = 0.0f;
+
+    float _reactionFadeWeight = 0.0f;
+    bool  _reactionWasActive  = false;
 };
