@@ -14,12 +14,18 @@ enum class OutOfRangeMode {
     Explicit, // log structured error and do not play
 };
 
+enum class BreathGuardMode {
+    Lerp, // default: lerp breath back in as reaction fades out
+    None, // no guard — breath runs freely through and after the reaction
+};
+
 struct ReactionEntry {
     std::string raw_id;                           // raw motion group name (e.g. "Nod")
     bool entry_dependent = false;
     std::map<std::string, EntryBound> valid_entry; // param name → bounds
     float normalise_rate = 0.0f;                   // units/s; 0 = auto (2× breath max speed)
     OutOfRangeMode out_of_range_mode = OutOfRangeMode::Implicit;
+    BreathGuardMode breath_guard = BreathGuardMode::Lerp;
 };
 
 struct ModelProfile {

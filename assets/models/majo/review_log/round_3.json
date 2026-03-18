@@ -1,0 +1,95 @@
+{
+  "round": 3,
+  "status": "closed",
+  "date": "2026-03-18",
+  "process_notes": [
+    "Round 3 targeted re-render covers only the 3 revised reaction clips: nod, look_away, tap.",
+    "Expressions and idle are all Approved from prior rounds — not re-rendered.",
+    "round_2.json contained a label error: nod diagnosis referenced 'ParamAngleX' but the actual file uses 'ParamAngleY'. The correct fix was applied against the actual file values.",
+    "round_2.json proposed nod peak reduction 'from -10 to -7' — but the actual file had peak -22. The correct fix reduces from -22 to -10 (33% of ±30 range).",
+    "nod FadeOutTime was already 0.6 in the actual file (exceeding the proposed 0.5). Left unchanged.",
+    "Renderer binary confirmed at /tmp/live2d_build/live2d-render (from .env: LIVE2D_RENDER_BIN)."
+  ],
+  "fixes_applied": [
+    {
+      "file": "assets/models/majo/motions/nod.motion3.json",
+      "backup": "assets/models/majo/motions/nod_v4.motion3.json",
+      "changes": [
+        {
+          "param": "ParamAngleY",
+          "field": "peak_value",
+          "from": -22.0,
+          "to": -10.0,
+          "rationale": "Peak of -22 was 73% of ±30 range — far too deep for a discourse nod. Human review in round 2 noted 'a lot of motion' and head appearing to look down excessively. Reduced to -10 (33% of range), consistent with a natural acknowledgement nod. Secondary rebound keyframe at t=0.9 also scaled proportionally from -8 to -4."
+        }
+      ],
+      "unchanged": [
+        {
+          "field": "FadeOutTime",
+          "value": 0.6,
+          "note": "Already 0.6 s in the actual file — exceeds the round_2 proposed 0.5 s. Left unchanged."
+        }
+      ]
+    },
+    {
+      "file": "assets/models/majo/motions/look_away.motion3.json",
+      "backup": null,
+      "changes": [
+        {
+          "param": "look_away motion",
+          "field": "FadeOutTime",
+          "from": 0.4,
+          "to": 0.6,
+          "rationale": "Increase fade-out duration to soften CubismBreath snap-back at motion end. No keyframe value changes — motion content confirmed correct in round 2 diagnosis."
+        }
+      ]
+    },
+    {
+      "file": "assets/models/majo/motions/tap.motion3.json",
+      "backup": null,
+      "changes": [
+        {
+          "param": "tap motion",
+          "field": "FadeOutTime",
+          "from": 0.3,
+          "to": 0.5,
+          "rationale": "Increase fade-out duration to soften CubismBreath snap-back at motion end. Jolt and damped oscillation confirmed working correctly in round 2 diagnosis."
+        }
+      ]
+    }
+  ],
+  "meta_counts_updated": false,
+  "meta_counts_note": "FadeOutTime changes do not affect CurveCount or TotalSegmentCount. Nod keyframe peak changes are in-place replacements — no segments added or removed. Meta unchanged.",
+  "clips": [
+    {
+      "label": "REACTION: nod",
+      "type": "reaction",
+      "verdict": "Approved",
+      "human_quote": "all 3 look very reasonable",
+      "agent_diagnosis": "Human approved in round 3 after fix.",
+      "tag": "[REVISED r3]",
+      "changes_applied": ["ParamAngleY peak -22 → -10"],
+      "proposed_fix": null
+    },
+    {
+      "label": "REACTION: look_away",
+      "type": "reaction",
+      "verdict": "Approved",
+      "human_quote": "all 3 look very reasonable",
+      "agent_diagnosis": "Human approved in round 3 after fix.",
+      "tag": "[REVISED r3]",
+      "changes_applied": ["FadeOutTime 0.4 → 0.6"],
+      "proposed_fix": null
+    },
+    {
+      "label": "REACTION: tap",
+      "type": "reaction",
+      "verdict": "Approved",
+      "human_quote": "all 3 look very reasonable",
+      "agent_diagnosis": "Human approved in round 3 after fix.",
+      "tag": "[REVISED r3]",
+      "changes_applied": ["FadeOutTime 0.3 → 0.5"],
+      "proposed_fix": null
+    }
+  ]
+}

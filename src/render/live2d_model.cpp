@@ -355,8 +355,10 @@ void Live2DModel::Update(float deltaTime, const MouthState& mouth, const CueStat
             // Prime the breath guard: UpdateMotion for the newly-queued motion
             // only runs next frame (GetCurrentPriority still 0 this frame).
             // Set flags now so the guard holds on this transition frame.
-            _reactionFadeWeight = 1.0f;
-            _reactionWasActive  = true;
+            if (!_suppressBreathGuard) {
+                _reactionFadeWeight = 1.0f;
+                _reactionWasActive  = true;
+            }
         }
     }
 
@@ -386,12 +388,15 @@ void Live2DModel::Update(float deltaTime, const MouthState& mouth, const CueStat
     _model->SetParameterValue(_idParamMouthOpenY, mouth.open, 0.8f);
     _model->SetParameterValue(_idParamMouthForm,  mouth.form, 0.8f);
 
-    // Breath guard: suppress / blend breath during and after reaction motions (priority >= 2)
+    // Breath guard: suppress / blend breath during and after reaction motions (priority >= 2).
+    // Skipped entirely if the current reaction has breath_guard: "none" in its registry entry.
     {
         const int currentPriority = _motionManager->GetCurrentPriority();
         if (currentPriority >= 2 || _normalisationActive) {
-            _reactionFadeWeight = 1.0f;
-            _reactionWasActive  = true;
+            if (!_suppressBreathGuard) {
+                _reactionFadeWeight = 1.0f;
+                _reactionWasActive  = true;
+            }
         } else if (_reactionWasActive) {
             _reactionFadeWeight -= deltaTime / 0.5f;
             if (_reactionFadeWeight <= 0.0f) {
@@ -506,6 +511,13 @@ std::vector<Live2DModel::NormParam> Live2DModel::BuildNormParams(
 
 void Live2DModel::TriggerMotion(const std::string& name, float cue_time)
 {
+    // Resolve breath guard preference before any early returns.
+    {
+        auto bit = _reactionEntries.find(name);
+        _suppressBreathGuard = (bit != _reactionEntries.end()
+                                && bit->second.breath_guard == BreathGuardMode::None);
+    }
+
     auto it = _reactionEntries.find(name);
     if (it != _reactionEntries.end() && it->second.entry_dependent
         && it->second.out_of_range_mode != OutOfRangeMode::None) {

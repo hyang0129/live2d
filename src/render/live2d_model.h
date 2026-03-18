@@ -111,8 +111,9 @@ private:
 
     float _userTime = 0.0f;
 
-    float _reactionFadeWeight = 0.0f;
-    bool  _reactionWasActive  = false;
+    float _reactionFadeWeight    = 0.0f;
+    bool  _reactionWasActive     = false;
+    bool  _suppressBreathGuard   = false; // set from reaction's breath_guard registry field
 
     bool _normalisationActive = false;
     std::string _normalisationPendingMotion;

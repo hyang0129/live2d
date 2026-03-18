@@ -480,8 +480,8 @@ Phase C — Majo Review Loop (Deliverable 3.3–3.6)
   C5. Registry update + spec compliance check                        [agent]
 
 Phase D — Workflow Document Finalisation
-  D1. Update spec/v1/behaviour-authoring-workflow.md with any divergences
-      discovered during Phases B–C
+  D1. Update behaviour-authoring-workflow.md with any divergences           ✅ DONE
+      discovered during Phases B–C → moved to docs/; 7 lessons added
   D2. Workflow doc reviewed and approved                             [human]
 
 Phase E — Full Integration Fixture (cross-repo)

@@ -1,5 +1,10 @@
 # Behaviour Authoring Workflow
-Status: Draft
+
+> **This document has moved.** The canonical, D1-updated version is at
+> [`docs/behaviour-authoring-workflow.md`](../../docs/behaviour-authoring-workflow.md).
+> This copy is retained for spec version history only and is no longer maintained.
+
+Status: Draft (superseded)
 Spec version: 1.0 (2026-03-17)
 
 ---

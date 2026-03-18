@@ -41,38 +41,32 @@ AngleX for a lateral turn. Consider revising in round 3 look_away calibration.
 
 ## nod.motion3.json
 
-**Semantic:** Discourse acknowledgement — head rises slightly (anticipation), dips
-down, then returns to neutral.
-**Duration:** 0.7 s | **Loop:** false | **FadeIn:** 0.1 s | **FadeOut:** 0.6 s
-**Current version:** v4 (up-then-down shape with multi-keyframe easing)
-**Backup:** `nod_v3.motion3.json` — previous version (AngleY only, no anticipation rise)
+**Semantic:** Discourse acknowledgement — head dips down then returns to neutral with
+a slight rebound overshoot.
+**Duration:** 1.5 s | **Loop:** false | **FadeIn:** 0.1 s | **FadeOut:** 0.6 s
+**Current version:** v5 (peak reduced from –22 to –10; same shape and duration)
+**Backup:** `nod_v4.motion3.json` — previous version (peak –22, too deep)
 
 ### Parameters used
 
 | Parameter      | Keyframes                                                              | Values used |
 |---------------|------------------------------------------------------------------------|-------------|
-| `ParamAngleY` | t=0→0, t=0.12→+4, t=0.22→+5, t=0.40→–10, t=0.55→–3, t=0.70→0       | –10 to +5   |
-| `ParamAngleX` | t=0→0, t=0.70→0 (hold flat)                                           | 0           |
-| `ParamAngleZ` | t=0→0, t=0.70→0 (hold flat)                                           | 0           |
+| `ParamAngleY` | t=0→0, t=0.35→–10, t=0.65→+2, t=0.90→–4, t=1.20→0, t=1.50→0        | –10 to +2   |
 
 ### Rationale
 
-- **Up-then-down shape**: Human nods typically include a slight anticipatory raise
-  before the dip. The rise to +5 (t=0.12–0.22) precedes the dip to –10 (t=0.40).
-  This reads as a natural, expressive acknowledgement rather than a mechanical
-  one-direction drop.
-- **Multi-keyframe easing**: Multiple intermediate keyframes approximate ease-in
-  (slow start of rise) and ease-out (eased return from dip) without relying on
-  Bezier curves, which have uncertain behaviour with `AreBeziersRestricted: true`.
-- **AngleX and AngleZ held at 0**: During the nod, CubismBreath continues driving
-  all angle params. The save/restore guard in the renderer suppresses breath on
-  AngleX/Y/Z while priority ≥ 2. Holding the hold curves at 0 ensures the nod reads
-  clean without yaw/roll contamination.
-- **FadeOutTime 0.6 s**: Increased from 0.3 s. Note: a visible snap to idle can occur
-  when the motion finishes because the breath save/restore guard deactivates the
-  instant priority drops from 2 → 1. The longer FadeOut gives the blend more time,
-  but does not fully eliminate the snap. This is a renderer-level issue — the guard
-  should ideally fade rather than switch off instantaneously. Documented for Phase D1.
+- **Peak –10 (33% of ±30 range)**: Round 2 human review noted "a lot of motion" and
+  the model appearing to look down excessively. The prior peak of –22 was 73% of the
+  full pitch range — far too deep for a discourse acknowledgement nod. –10 brings it
+  to 33% of range, consistent with a natural, moderate head nod.
+- **Round_2 discrepancy note**: The round_2.json diagnosis referenced `ParamAngleX`
+  (wrong axis) and a peak of –10 (which was actually the pre-v4 value). The actual
+  file at that time had –22 on `ParamAngleY`. The correct fix confirmed here is to
+  reduce from –22 to –10 on `ParamAngleY`.
+- **FadeOutTime 0.6 s**: Already exceeded the round_2 proposed 0.5 s. Left unchanged.
+  Note: a visible snap to idle can occur when the motion finishes because the breath
+  save/restore guard deactivates the instant priority drops from 2 → 1. Documented
+  for Phase D1.
 
 ### Revision history
 
@@ -82,7 +76,8 @@ down, then returns to neutral.
 | v1      | nod_v1            | Reduced AngleX to –7; added AngleY/Z hold curves          |
 | v2      | nod_v2            | Remapped primary axis: AngleY=–10 (pitch), AngleX/Z hold  |
 | v3      | nod_v3            | Same as v2 confirmed by calibration render                 |
-| v4      | nod (active)      | Up-then-down (+5/–10); multi-keyframe easing; 0.7 s duration |
+| v4      | nod_v4 (backup)   | Peak –22 on AngleY (too deep — round 2 "Revise" verdict)  |
+| v5      | nod (active)      | Peak –10 on AngleY (33% of range); FadeOut 0.6 s          |
 
 ---
 
@@ -90,7 +85,8 @@ down, then returns to neutral.
 
 **Semantic:** Thinking/recalling — eyes look up-right smoothly, head follows with
 a ~150 ms delay. Holds the deflected position, then smoothly returns.
-**Duration:** 1.5 s | **Loop:** false | **FadeIn:** 0.15 s | **FadeOut:** 0.4 s
+**Duration:** 1.5 s | **Loop:** false | **FadeIn:** 0.15 s | **FadeOut:** 0.6 s
+*(FadeOut increased from 0.4 s to 0.6 s in round 3 to soften CubismBreath snap-back.)*
 
 ### Parameters used
 
@@ -121,7 +117,8 @@ a ~150 ms delay. Holds the deflected position, then smoothly returns.
 
 **Semantic:** Startled/tap reaction — head jolts sideways with damped oscillation
 simulating a physics impact and recovery.
-**Duration:** 1.0 s | **Loop:** false | **FadeIn:** 0.05 s | **FadeOut:** 0.3 s
+**Duration:** 0.8 s | **Loop:** false | **FadeIn:** 0.05 s | **FadeOut:** 0.5 s
+*(FadeOut increased from 0.3 s to 0.5 s in round 3 to soften CubismBreath snap-back.)*
 
 **Note:** Gate 1 confirmed `head_cues_reliable = true`, so `ParamAngleX` micro-jolt
 is included to simulate a slight chin-up impulse on impact.

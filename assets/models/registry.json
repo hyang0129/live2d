@@ -164,8 +164,8 @@
     },
     "reactions": {
       "idle": { "id": "Idle" },
-      "nod": {
-        "id": "Nod",
+      "deep_nod": {
+        "id": "DeepNod",
         "entry": "dependent",
         "valid_entry": { "ParamAngleX": { "min": -5, "max": 5 } },
         "out_of_range_mode": "none"
@@ -199,6 +199,14 @@
       "angry": {
         "id": "angry",
         "note": "Brow fully down, negative brow form, strong negative mouth, mouth open."
+      },
+      "curious": {
+        "id": "curious",
+        "note": "Slightly raised brows, ParamEyeLOpen/R Multiply 1.05 for widened eyes. Conveys mild interest or attentiveness."
+      },
+      "embarrassed": {
+        "id": "embarrassed",
+        "note": "Reversed brow direction (ParamBrowLY=+0.5), softened brow form, strained smile. Best achievable without blush parameter. Blush investigation pending (non-blocking)."
       }
     },
     "reactions": {
@@ -212,12 +220,30 @@
       },
       "nod": {
         "id": "Nod",
-        "note": "Forward head dip. Entry-dependent: assumes head near yaw center (breath range ±7.5°; valid ±5°).",
+        "note": "Standard discourse nod — up-then-down head dip, 50% amplitude (peak −5°). Entry-independent from breath cycle (valid ±8°); no breath guard. Use this for most acknowledgement beats.",
+        "entry": "dependent",
+        "valid_entry": {
+          "ParamAngleX": { "min": -8, "max": 8 }
+        },
+        "out_of_range_mode": "implicit",
+        "breath_guard": "none"
+      },
+      "deep_nod": {
+        "id": "DeepNod",
+        "note": "Full-amplitude discourse nod (peak −10°). Entry-dependent: assumes head near yaw center (valid ±5°); lerp breath guard active. Use for emphatic acknowledgement.",
         "entry": "dependent",
         "valid_entry": {
           "ParamAngleX": { "min": -5, "max": 5 }
         },
         "out_of_range_mode": "implicit"
+      },
+      "look_away": {
+        "id": "LookAway",
+        "note": "Thinking/recalling gaze shift — eyes move up-right, head follows with 150ms lag. Returns to neutral."
+      },
+      "tap": {
+        "id": "Tap",
+        "note": "Startled tap reaction — damped oscillation simulating lateral impact and recovery."
       }
     }
   }

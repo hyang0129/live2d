@@ -47,6 +47,10 @@ static ModelProfile ParseEntry(const json& entry)
                     else if (mode == "explicit") re.out_of_range_mode = OutOfRangeMode::Explicit;
                     else                         re.out_of_range_mode = OutOfRangeMode::Implicit;
                 }
+                {
+                    const std::string bg = raw.value("breath_guard", std::string("lerp"));
+                    re.breath_guard = (bg == "none") ? BreathGuardMode::None : BreathGuardMode::Lerp;
+                }
             }
             p.reactions[alias] = re;
         }
