@@ -100,7 +100,7 @@ non-zero with a clear error message.
 ### Model Registry
 
 The model registry is maintained in `assets/models/registry.json`. Each entry
-maps a logical `id` to a model path and declares the expressions and motions
+maps a logical `id` to a model path and declares the emotions and reactions
 available on that model.
 
 ```json
@@ -108,14 +108,14 @@ available on that model.
   {
     "id": "shiori",
     "path": "assets/models/shiori/shiori.model3.json",
-    "expressions": ["neutral", "happy", "sad", "surprised", "angry"],
-    "motions": ["nod", "shake", "look_away", "blink"]
+    "emotions": ["neutral", "happy", "sad", "surprised", "angry"],
+    "reactions": ["nod", "shake", "look_away", "blink"]
   }
 ]
 ```
 
 video_agent reads this file at pipeline start to validate model IDs and
-available expressions before generating manifests.
+available emotions before generating manifests.
 
 ---
 

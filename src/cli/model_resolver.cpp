@@ -26,10 +26,29 @@ static ModelProfile ParseEntry(const json& entry)
 
     if (entry.contains("reactions") && entry["reactions"].is_object())
         for (auto& [alias, raw] : entry["reactions"].items()) {
-            if (raw.is_string())
-                p.reactions[alias] = raw.get<std::string>();
-            else if (raw.is_object() && raw.contains("id"))
-                p.reactions[alias] = raw["id"].get<std::string>();
+            ReactionEntry re;
+            if (raw.is_string()) {
+                re.raw_id = raw.get<std::string>();
+            } else if (raw.is_object() && raw.contains("id")) {
+                re.raw_id = raw["id"].get<std::string>();
+                re.entry_dependent = raw.contains("entry") && raw["entry"].get<std::string>() == "dependent";
+                if (raw.contains("valid_entry") && raw["valid_entry"].is_object()) {
+                    for (auto& [paramName, bounds] : raw["valid_entry"].items()) {
+                        EntryBound eb;
+                        eb.min = bounds.value("min", 0.0f);
+                        eb.max = bounds.value("max", 0.0f);
+                        re.valid_entry[paramName] = eb;
+                    }
+                }
+                re.normalise_rate = raw.value("normalise_rate", 0.0f);
+                {
+                    const std::string mode = raw.value("out_of_range_mode", std::string("implicit"));
+                    if (mode == "none")         re.out_of_range_mode = OutOfRangeMode::None;
+                    else if (mode == "explicit") re.out_of_range_mode = OutOfRangeMode::Explicit;
+                    else                         re.out_of_range_mode = OutOfRangeMode::Implicit;
+                }
+            }
+            p.reactions[alias] = re;
         }
 
     return p;
