@@ -334,12 +334,15 @@ void Live2DModel::Update(float deltaTime, const MouthState& mouth, const CueStat
     if (_expressionManager)
         _expressionManager->UpdateMotion(_model, deltaTime);
 
-    // Gaze / head from cue state (set directly, overrides motion data)
-    _model->SetParameterValue(_idParamEyeBallX,   cue.gaze_x);
-    _model->SetParameterValue(_idParamEyeBallY,   cue.gaze_y);
-    _model->SetParameterValue(_idParamAngleX,     cue.head_yaw);
-    _model->SetParameterValue(_idParamAngleY,     cue.head_pitch);
-    _model->SetParameterValue(_idParamAngleZ,     cue.head_roll);
+    // Gaze / head from cue state — skip when a reaction motion (priority ≥ 2)
+    // is actively playing; the motion keyframes own those parameters.
+    if (_motionManager->GetCurrentPriority() < 2) {
+        _model->SetParameterValue(_idParamEyeBallX, cue.gaze_x);
+        _model->SetParameterValue(_idParamEyeBallY, cue.gaze_y);
+        _model->SetParameterValue(_idParamAngleX,   cue.head_yaw);
+        _model->SetParameterValue(_idParamAngleY,   cue.head_pitch);
+        _model->SetParameterValue(_idParamAngleZ,   cue.head_roll);
+    }
 
     // Mouth from lipsync sequencer
     _model->SetParameterValue(_idParamMouthOpenY, mouth.open, 0.8f);
