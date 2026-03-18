@@ -25,7 +25,7 @@ public:
 
     void Advance(float time_sec,
                  std::function<void(const std::string&)> set_expression,
-                 std::function<void(const std::string&)> trigger_motion,
+                 std::function<void(const std::string&, float)> trigger_motion,
                  CueState& state);
 
 private:

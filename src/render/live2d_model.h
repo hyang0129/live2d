@@ -17,8 +17,10 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include "cue_sequencer.h"
 #include "lipsync_sequencer.h"
+#include "../cli/model_resolver.h"
 
 class Live2DModel : public Csm::CubismUserModel {
 public:
@@ -47,12 +49,25 @@ public:
     void Draw(Csm::CubismMatrix44& vpMatrix);
 
     void SetExpression(const std::string& name);
-    void TriggerMotion(const std::string& name);
+    void TriggerMotion(const std::string& name, float cue_time);
+    void SetReactionEntries(const std::map<std::string, ReactionEntry>& entries);
+    // Scale breath speed: 2.0 = twice as fast (halves cycle period).
+    // Must be called after Load().
+    void SetBreathSpeed(float multiplier);
 
 private:
+    struct NormParam {
+        const Csm::CubismId* id;
+        float start;   // value at normalisation trigger time (breath-included)
+        float target;  // boundary value to reach
+    };
+
     // File I/O helpers (not virtual in base; pattern from LAppModel_Common)
     Csm::csmByte* CreateBuffer(const Csm::csmChar* path, Csm::csmSizeInt* size);
     void DeleteBuffer(Csm::csmByte* buffer, const Csm::csmChar* path = "");
+
+    void PlayMotionGroup(const std::string& group_name);
+    std::vector<NormParam> BuildNormParams(const std::map<std::string, EntryBound>& valid_entry);
 
     void SetupModel(Csm::ICubismModelSetting* setting);
 #ifdef _WIN32
@@ -98,4 +113,21 @@ private:
 
     float _reactionFadeWeight = 0.0f;
     bool  _reactionWasActive  = false;
+
+    bool _normalisationActive = false;
+    std::string _normalisationPendingMotion;
+    float _normalisationRate     = 0.0f;  // retained for logging only
+    float _normalisationElapsed  = 0.0f;  // time since normalisation started
+    float _normalisationDuration = 0.0f;  // total normalisation time (seconds)
+    std::vector<NormParam> _normalisationParams;
+    std::map<std::string, ReactionEntry> _reactionEntries;
+
+    // Breath base params (stored to allow SetBreathSpeed rescaling)
+    struct BreathParam {
+        const Csm::CubismId* id;
+        float offset, peak, cycle, weight;
+    };
+    std::vector<BreathParam> _breathBaseParams;
+    // Per-parameter maximum speed from breath (units/s), computed at load
+    std::map<const Csm::CubismId*, float> _breathMaxSpeed;
 };

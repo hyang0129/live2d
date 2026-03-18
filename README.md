@@ -269,6 +269,40 @@ Prerequisites on Linux: `sudo apt install cmake ninja-build libgl-dev libegl-dev
 
 Run from the project root — shader and asset paths are relative to the working directory.
 
+### Configure .env
+
+After building, create a `.env` file in the project root to record the binary path.
+Copy `.env.example` and uncomment the line that matches your platform:
+
+```bash
+cp .env.example .env
+# then open .env and confirm LIVE2D_RENDER_BIN points to the binary you just built
+```
+
+| Platform | Default value |
+|---|---|
+| Linux | `build/live2d-render` |
+| Windows | `build/Release/live2d-render.exe` |
+
+`LIVE2D_RENDER_BIN` is read by scripts, the API server, and Claude Code to locate the renderer without hard-coding the path. The `.env` file is gitignored — each developer maintains their own.
+
+### Configure .env
+
+After building, create a `.env` file in the project root to record the binary path.
+Copy `.env.example` and uncomment the line that matches your platform:
+
+```bash
+cp .env.example .env
+# then open .env and confirm LIVE2D_RENDER_BIN points to the binary you just built
+```
+
+| Platform | Default value |
+|---|---|
+| Linux | `build/live2d-render` |
+| Windows | `build/Release/live2d-render.exe` |
+
+`LIVE2D_RENDER_BIN` is read by scripts, the API server, and Claude Code to locate the renderer without hard-coding the path. The `.env` file is gitignored — each developer maintains their own.
+
 ---
 
 ## Verifying the Build

@@ -156,6 +156,23 @@
     }
   },
   {
+    "id": "majo_nod_nocheck",
+    "path": "assets/models/majo/majo.model3.json",
+    "note": "Review entry — identical to majo but nod runs with out_of_range_mode:none. Used by entry_validation_review to show uncorrected behaviour.",
+    "emotions": {
+      "neutral": { "id": "neutral" }
+    },
+    "reactions": {
+      "idle": { "id": "Idle" },
+      "nod": {
+        "id": "Nod",
+        "entry": "dependent",
+        "valid_entry": { "ParamAngleX": { "min": -5, "max": 5 } },
+        "out_of_range_mode": "none"
+      }
+    }
+  },
+  {
     "id": "majo",
     "path": "assets/models/majo/majo.model3.json",
     "emotions": {
@@ -195,7 +212,12 @@
       },
       "nod": {
         "id": "Nod",
-        "note": "Forward head dip."
+        "note": "Forward head dip. Entry-dependent: assumes head near yaw center (breath range ±7.5°; valid ±5°).",
+        "entry": "dependent",
+        "valid_entry": {
+          "ParamAngleX": { "min": -5, "max": 5 }
+        },
+        "out_of_range_mode": "implicit"
       }
     }
   }

@@ -74,6 +74,8 @@ docs/
 ### Key Files
 
 - `docs/live2d-avatar-api-contract.md` — scene manifest schema, cue vocabulary, CLI spec
+- `docs/authoring-guide.md` — **read this before working on any motion or expression**. Covers: motion vs expression classification, `.motion3.json` and `.exp3.json` formats, registry entry syntax, entry validation modes (none/implicit/explicit), normalisation behaviour (smoothstep, auto-rate, 0.1s minimum), breath guard modes, breath speed, and common failure modes.
+- `docs/motion-definition.md` — detailed spec for motion entry classification and out-of-range handling (the authoritative reference; `authoring-guide.md` is the fast-lookup summary)
 - `docs/model-onboarding.md` — checklist for evaluating and registering new models (pass/fail criteria, test-render workflow, rejection log)
 - `assets/models/registry.json` — model registry mapping IDs to paths, emotions, and reactions
 - `SDK_README.md` — Live2D Cubism SDK reference (internal rendering layer)
@@ -85,3 +87,38 @@ docs/
 - Visual Studio 2022 (17.14.2)
 - CMake 3.31.7
 - Target: Windows 10/11
+
+## Renderer Binary — Auto-Build Guard
+
+Before running any command that invokes the renderer, resolve the binary path as follows:
+
+1. **Read `.env`** (project root). If it exists, load `LIVE2D_RENDER_BIN` from it.
+2. **Fall back to platform defaults** if `.env` is absent or the variable is unset:
+   - Linux: `build/live2d-render`
+   - Windows: `build/Release/live2d-render.exe`
+3. **Check that the binary exists** (`test -f "$LIVE2D_RENDER_BIN"`).
+4. **If it does not exist, build it automatically:**
+   ```bash
+   # Linux
+   cmake --preset linux && cmake --build --preset linux
+   # Windows
+   cmake --preset windows && cmake --build --preset windows
+   ```
+5. After a successful build, **create or update `.env`** with the resolved path:
+   ```
+   LIVE2D_RENDER_BIN=build/live2d-render   # adjust for Windows
+   ```
+6. Then proceed with the original task.
+
+Never ask the user to build manually unless the build itself fails. The build is fast and idempotent — prefer doing it over blocking.
+
+## Review Artifacts — Output Convention
+
+Human-reviewable output (MP4 comparisons, annotated renders, review clips) must be written to **`results/tests/<feature-name>/`** inside the repo, never to `/tmp` or other ephemeral paths. The `results/` tree is gitignored, so outputs are persistent within the workspace but not committed.
+
+- Review render scripts (`render_review.py` and equivalents) must resolve their output directory as `<repo_root>/results/tests/<feature>/`.
+- Intermediate/scratch files (un-annotated raw renders) go to `results/tests/<feature>/_tmp/` and are also gitignored.
+- Final deliverable for human review is the concatenated annotated MP4 at `results/tests/<feature>/review_<feature>.mp4`.
+- Every clip must be **at least 5 seconds long** and must include a **5-second idle buffer after the last meaningful action** so the reviewer can see the full recovery. Achieve this by adding a sentinel `{"time": T, "emotion": "neutral"}` cue at whatever time T gives `T + 1.0s render_loop_tail ≥ max(5.0, last_action_end + 5.0)`.
+
+The same convention applies to the `breath_guard_review` script — if re-run, its output should be redirected to `results/tests/breath_guard_review/`.

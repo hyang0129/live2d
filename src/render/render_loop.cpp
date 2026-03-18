@@ -70,7 +70,7 @@ bool RunRenderLoop(const SceneManifest& manifest,
         // ── Dispatch cues ───────────────────────────────────────────────────
         cues.Advance(t,
             [&](const std::string& name) { model.SetExpression(name); },
-            [&](const std::string& name) { model.TriggerMotion(name); },
+            [&](const std::string& name, float cue_time) { model.TriggerMotion(name, cue_time); },
             cue_state);
 
         // ── Evaluate lipsync ─────────────────────────────────────────────────

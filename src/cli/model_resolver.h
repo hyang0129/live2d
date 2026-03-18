@@ -3,12 +3,31 @@
 #include <map>
 #include "manifest.h"
 
+struct EntryBound {
+    float min;
+    float max;
+};
+
+enum class OutOfRangeMode {
+    None,     // skip entry check entirely — play motion regardless of position
+    Implicit, // normalise-then-play with warning (default)
+    Explicit, // log structured error and do not play
+};
+
+struct ReactionEntry {
+    std::string raw_id;                           // raw motion group name (e.g. "Nod")
+    bool entry_dependent = false;
+    std::map<std::string, EntryBound> valid_entry; // param name → bounds
+    float normalise_rate = 0.0f;                   // units/s; 0 = auto (2× breath max speed)
+    OutOfRangeMode out_of_range_mode = OutOfRangeMode::Implicit;
+};
+
 struct ModelProfile {
     std::string id;
     std::string path;
     // Director-facing alias → raw model expression/motion name
     std::map<std::string, std::string> emotions;   // e.g. "neutral" → "F01"
-    std::map<std::string, std::string> reactions;  // e.g. "tap" → "TapBody"
+    std::map<std::string, ReactionEntry> reactions;  // e.g. "tap" → ReactionEntry
 
     bool valid() const { return !path.empty(); }
 };

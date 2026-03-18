@@ -44,6 +44,7 @@ struct SceneManifest {
     int         height = 1920;
     int         fps    = 30;
     Background  background;
+    float       breath_speed = 1.0f;  // multiplier: 2.0 = twice as fast
     std::vector<LipsyncKeyframe> lipsync;
     std::vector<Cue>             cues;
 };

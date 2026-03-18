@@ -122,6 +122,10 @@ bool LoadManifest(const std::string& path,
     // background
     ParseBackground(j.value("background", json(nullptr)), out.background);
 
+    // breath_speed (optional, default 1.0)
+    if (j.contains("breath_speed") && j["breath_speed"].is_number())
+        out.breath_speed = j["breath_speed"].get<float>();
+
     // lipsync
     if (j.contains("lipsync") && j["lipsync"].is_array()) {
         for (const auto& kf : j["lipsync"]) {

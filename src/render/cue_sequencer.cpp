@@ -18,7 +18,7 @@ void CueSequencer::Load(const std::vector<Cue>& cues,
 
 void CueSequencer::Advance(float time_sec,
                            std::function<void(const std::string&)> set_expression,
-                           std::function<void(const std::string&)> trigger_motion,
+                           std::function<void(const std::string&, float)> trigger_motion,
                            CueState& state)
 {
     while (_next < (int)_cues.size() && _cues[_next].time <= time_sec) {
@@ -46,7 +46,7 @@ void CueSequencer::Advance(float time_sec,
             } else {
                 Logger::Info("Cue t=%.3fs: reaction → \"%s\" (raw: \"%s\")",
                              c.time, c.str_value.c_str(), it->second.c_str());
-                trigger_motion(it->second);  // pass raw name to model
+                trigger_motion(it->second, c.time);  // pass raw name and cue time to model
             }
             break;
         }

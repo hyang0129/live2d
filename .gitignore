@@ -56,6 +56,13 @@ __pycache__/
 # Devcontainer temp files
 .devcontainer/.gituser.tmp
 
+# Motion backup/versioned drafts — active clips have no version suffix
+assets/models/**/motions/*_v*.motion3.json
+assets/models/**/motions/*_review.motion3.json
+
 # OS artifacts
 Thumbs.db
 .DS_Store
+
+# Local environment — generated after build, not committed
+.env

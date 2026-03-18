@@ -83,7 +83,7 @@ static int RunInspect(const std::string& model_id)
 
         printf("  \"reactions\": [");
         first = true;
-        for (const auto& [alias, _] : p.reactions) {
+        for (const auto& [alias, entry] : p.reactions) {
             printf("%s\"%s\"", first ? "" : ", ", alias.c_str());
             first = false;
         }
@@ -182,12 +182,26 @@ int main(int argc, char* argv[])
         return EXIT_RENDER_ERROR;
     }
 
+    if (manifest.breath_speed != 1.0f)
+        model.SetBreathSpeed(manifest.breath_speed);
+
     // ── 7. Prepare sequencers ─────────────────────────────────────────────────
     LipsyncSequencer lipsync;
     lipsync.Load(manifest.lipsync);
 
+    // Build alias → raw_id string map for CueSequencer (unchanged interface)
+    std::map<std::string, std::string> reactionAliases;
+    for (const auto& [alias, entry] : profile.reactions)
+        reactionAliases[alias] = entry.raw_id;
+
+    // Build raw_id → ReactionEntry map for Live2DModel entry checking
+    std::map<std::string, ReactionEntry> reactionEntries;
+    for (const auto& [alias, entry] : profile.reactions)
+        reactionEntries[entry.raw_id] = entry;
+    model.SetReactionEntries(reactionEntries);
+
     CueSequencer cues;
-    cues.Load(manifest.cues, profile.emotions, profile.reactions);
+    cues.Load(manifest.cues, profile.emotions, reactionAliases);
 
     // ── 8. Open FFmpeg encoder ────────────────────────────────────────────────
     const bool transparent = (manifest.background.type == BackgroundType::Transparent);

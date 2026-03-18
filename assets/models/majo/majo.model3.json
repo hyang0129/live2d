@@ -54,6 +54,27 @@
 					"FadeInTime": 0.05,
 					"FadeOutTime": 0.0
 				}
+			],
+			"Nod": [
+				{
+					"File": "motions/nod.motion3.json",
+					"FadeInTime": 0.1,
+					"FadeOutTime": 0.6
+				}
+			],
+			"LookAway": [
+				{
+					"File": "motions/look_away.motion3.json",
+					"FadeInTime": 0.15,
+					"FadeOutTime": 0.4
+				}
+			],
+			"Tap": [
+				{
+					"File": "motions/tap.motion3.json",
+					"FadeInTime": 0.05,
+					"FadeOutTime": 0.3
+				}
 			]
 		}
 	},
