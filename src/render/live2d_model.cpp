@@ -5,6 +5,7 @@
 #include <CubismDefaultParameterId.hpp>
 #include <Id/CubismIdManager.hpp>
 #include <Motion/CubismMotion.hpp>
+#include <Effect/CubismBreath.hpp>
 #include <Physics/CubismPhysics.hpp>
 #include <Utils/CubismString.hpp>
 #include <Motion/CubismMotionQueueEntry.hpp>
@@ -172,17 +173,29 @@ void Live2DModel::SetupModel(ICubismModelSetting* setting)
     if (_setting->GetEyeBlinkParameterCount() > 0)
         _eyeBlink = CubismEyeBlink::Create(_setting);
 
-    // Breath
+    // Breath — store base params so SetBreathSpeed can rescale later
     {
         _breath = CubismBreath::Create();
-        csmVector<CubismBreath::BreathParameterData> bp;
         auto* idMgr = CubismFramework::GetIdManager();
-        bp.PushBack({idMgr->GetId(ParamAngleX),     0.f, 15.f,  6.5345f, 0.5f});
-        bp.PushBack({idMgr->GetId(ParamAngleY),     0.f,  8.f,  3.5345f, 0.5f});
-        bp.PushBack({idMgr->GetId(ParamAngleZ),     0.f, 10.f,  5.5345f, 0.5f});
-        bp.PushBack({idMgr->GetId(ParamBodyAngleX), 0.f,  4.f, 15.5345f, 0.5f});
-        bp.PushBack({idMgr->GetId(ParamBreath),     0.5f, 0.5f, 3.2345f, 0.5f});
+
+        _breathBaseParams = {
+            {idMgr->GetId(ParamAngleX),     0.f, 15.f,  6.5345f, 0.5f},
+            {idMgr->GetId(ParamAngleY),     0.f,  8.f,  3.5345f, 0.5f},
+            {idMgr->GetId(ParamAngleZ),     0.f, 10.f,  5.5345f, 0.5f},
+            {idMgr->GetId(ParamBodyAngleX), 0.f,  4.f, 15.5345f, 0.5f},
+            {idMgr->GetId(ParamBreath),     0.5f, 0.5f, 3.2345f, 0.5f},
+        };
+
+        csmVector<CubismBreath::BreathParameterData> bp;
+        for (const auto& p : _breathBaseParams)
+            bp.PushBack({p.id, p.offset, p.peak, p.cycle, p.weight});
         _breath->SetParameters(bp);
+
+        // Compute max speed (units/s) = peak * weight * (2π / cycle)
+        _breathMaxSpeed.clear();
+        constexpr float kTwoPi = 6.28318530718f;
+        for (const auto& p : _breathBaseParams)
+            _breathMaxSpeed[p.id] = p.peak * p.weight * (kTwoPi / p.cycle);
     }
 
     // Preload motions
@@ -320,15 +333,48 @@ void Live2DModel::Update(float deltaTime, const MouthState& mouth, const CueStat
         _motionManager->UpdateMotion(_model, deltaTime);
     }
 
-    _model->SaveParameters();
+    // Normalisation: move each parameter from its start value to the valid-entry
+    // boundary using a smoothstep curve (ease-in/ease-out) over _normalisationDuration
+    // seconds.  The position is written BEFORE SaveParameters so it becomes the
+    // saved base for motion blending — the nod's FadeIn blends FROM the boundary,
+    // not from the motion-only 0° returned by LoadParameters.
+    //
+    // Smoothstep: f(t) = t²(3-2t) for t ∈ [0,1].
+    //   velocity = 0 at both endpoints → no snap-start or snap-stop.
+    if (_normalisationActive) {
+        _normalisationElapsed += deltaTime;
+        const float t      = std::min(_normalisationElapsed / _normalisationDuration, 1.0f);
+        const float smooth = t * t * (3.0f - 2.0f * t);  // smoothstep
+
+        for (const auto& np : _normalisationParams)
+            _model->SetParameterValue(np.id, np.start + (np.target - np.start) * smooth);
+
+        if (t >= 1.0f) {
+            _normalisationActive = false;
+            PlayMotionGroup(_normalisationPendingMotion);
+            // Prime the breath guard: UpdateMotion for the newly-queued motion
+            // only runs next frame (GetCurrentPriority still 0 this frame).
+            // Set flags now so the guard holds on this transition frame.
+            _reactionFadeWeight = 1.0f;
+            _reactionWasActive  = true;
+        }
+    }
+
+    _model->SaveParameters();  // captures normalised position; motion blends FROM here
 
     // Expressions
     if (_expressionManager)
         _expressionManager->UpdateMotion(_model, deltaTime);
 
-    // Gaze / head from cue state — skip when a reaction motion (priority ≥ 2)
-    // is actively playing; the motion keyframes own those parameters.
-    if (_motionManager->GetCurrentPriority() < 2) {
+    // Gaze / head from cue state.
+    // Suppressed while: a reaction motion is playing (priority ≥ 2), normalisation
+    // is active, OR the post-reaction breath-guard fade is still running
+    // (_reactionFadeWeight > 0).  The fade condition prevents gaze from snapping
+    // the head to the cue position on the one frame between normalisation completing
+    // and the motion registering priority ≥ 2.
+    if (_motionManager->GetCurrentPriority() < 2
+        && !_normalisationActive
+        && _reactionFadeWeight <= 0.0f) {
         _model->SetParameterValue(_idParamEyeBallX, cue.gaze_x);
         _model->SetParameterValue(_idParamEyeBallY, cue.gaze_y);
         _model->SetParameterValue(_idParamAngleX,   cue.head_yaw);
@@ -343,7 +389,7 @@ void Live2DModel::Update(float deltaTime, const MouthState& mouth, const CueStat
     // Breath guard: suppress / blend breath during and after reaction motions (priority >= 2)
     {
         const int currentPriority = _motionManager->GetCurrentPriority();
-        if (currentPriority >= 2) {
+        if (currentPriority >= 2 || _normalisationActive) {
             _reactionFadeWeight = 1.0f;
             _reactionWasActive  = true;
         } else if (_reactionWasActive) {
@@ -406,9 +452,23 @@ void Live2DModel::SetExpression(const std::string& name)
     }
 }
 
-void Live2DModel::TriggerMotion(const std::string& name)
+void Live2DModel::SetReactionEntries(const std::map<std::string, ReactionEntry>& entries)
 {
-    // Find first motion in this group
+    _reactionEntries = entries;
+}
+
+void Live2DModel::SetBreathSpeed(float multiplier)
+{
+    if (!_breath || multiplier <= 0.0f || _breathBaseParams.empty()) return;
+
+    csmVector<CubismBreath::BreathParameterData> bp;
+    for (const auto& p : _breathBaseParams)
+        bp.PushBack({p.id, p.offset, p.peak, p.cycle / multiplier, p.weight});
+    _breath->SetParameters(bp);
+}
+
+void Live2DModel::PlayMotionGroup(const std::string& name)
+{
     for (int i = 0; i < _setting->GetMotionGroupCount(); ++i) {
         const csmChar* group = _setting->GetMotionGroupName(i);
         if (strcmp(group, name.c_str()) == 0 && _setting->GetMotionCount(group) > 0) {
@@ -420,5 +480,140 @@ void Live2DModel::TriggerMotion(const std::string& name)
             }
         }
     }
-    Logger::Warn("TriggerMotion: group \"%s\" not found in motions", name.c_str());
+    Logger::Warn("PlayMotionGroup: group \"%s\" not found in motions", name.c_str());
+}
+
+std::vector<Live2DModel::NormParam> Live2DModel::BuildNormParams(
+    const std::map<std::string, EntryBound>& valid_entry)
+{
+    std::vector<NormParam> params;
+    auto* ids = CubismFramework::GetIdManager();
+    for (const auto& [paramName, bound] : valid_entry) {
+        const CubismId* id = ids->GetId(paramName.c_str());
+        if (!id) {
+            Logger::Warn("[norm_params] valid_entry param \"%s\" not found on model — skipping",
+                         paramName.c_str());
+            continue;
+        }
+        float cur = _model->GetParameterValue(id);
+        if (cur < bound.min)
+            params.push_back({id, cur, bound.min});   // start, target
+        else if (cur > bound.max)
+            params.push_back({id, cur, bound.max});
+    }
+    return params;
+}
+
+void Live2DModel::TriggerMotion(const std::string& name, float cue_time)
+{
+    auto it = _reactionEntries.find(name);
+    if (it != _reactionEntries.end() && it->second.entry_dependent
+        && it->second.out_of_range_mode != OutOfRangeMode::None) {
+        const ReactionEntry& meta = it->second;
+        auto normParams = BuildNormParams(meta.valid_entry);
+
+        if (!normParams.empty()) {
+            // Determine normalisation rate.
+            // If meta.normalise_rate == 0 (auto), derive from 2× the breath max
+            // speed for the most-violated parameter.  This makes the normalisation
+            // feel proportional to the natural idle motion rather than arbitrary.
+            float rate = meta.normalise_rate;
+            if (rate <= 0.0f) {
+                float maxBreathSpeed = 0.0f;
+                for (const auto& np : normParams) {
+                    auto it = _breathMaxSpeed.find(np.id);
+                    if (it != _breathMaxSpeed.end())
+                        maxBreathSpeed = std::max(maxBreathSpeed, it->second);
+                }
+                rate = (maxBreathSpeed > 0.0f) ? 2.0f * maxBreathSpeed : 15.0f;
+            }
+
+            // Estimate normalisation duration from worst-case violation
+            float maxDist = 0.0f;
+            for (const auto& np : normParams) {
+                float cur = _model->GetParameterValue(np.id);
+                maxDist = std::max(maxDist, std::abs(np.target - cur));
+            }
+
+            // Guard against a zero rate (should not happen given auto-compute fallback,
+            // but prevents UB if the path is ever reached with a bad registry value).
+            if (rate <= 0.0f) {
+                Logger::Warn("[norm] rate <= 0 after compute — clamping to 15.0");
+                rate = 15.0f;
+            }
+
+            // Enforce minimum duration of 0.1s so even tiny violations produce a
+            // perceptible (not snappy) normalisation movement.
+            constexpr float kMinNormDuration = 0.1f;
+            const float rawDuration = maxDist / rate;
+            if (rawDuration < kMinNormDuration && maxDist > 0.0f)
+                rate = maxDist / kMinNormDuration;
+
+            const float normDuration = maxDist / rate;
+            const float actualStart  = cue_time + normDuration;
+            const float recommended  = cue_time - normDuration;
+
+            if (meta.out_of_range_mode == OutOfRangeMode::Explicit) {
+                // Structured error log — do not play
+                auto* ids = CubismFramework::GetIdManager();
+                std::string violations;
+                for (const auto& np : normParams) {
+                    float cur = _model->GetParameterValue(np.id);
+                    for (const auto& [pname, bound] : meta.valid_entry) {
+                        if (ids->GetId(pname.c_str()) == np.id) {
+                            char buf[256];
+                            snprintf(buf, sizeof(buf),
+                                " {param:%s value:%.1f valid:%.1f..%.1f}",
+                                pname.c_str(), cur, bound.min, bound.max);
+                            violations += buf;
+                            break;
+                        }
+                    }
+                }
+                Logger::Error(
+                    "[motion_entry_out_of_range] motion=%s cue_time=%.3fs"
+                    " violations=%s"
+                    " normalise_rate=%.1f estimated_norm_duration=%.3fs"
+                    " recommended_trigger=%.3fs",
+                    name.c_str(), cue_time, violations.c_str(),
+                    rate, normDuration, recommended);
+                return;
+            } else {
+                // Implicit: warn then queue normalise-then-play
+                auto* ids = CubismFramework::GetIdManager();
+                std::string violStr;
+                for (const auto& np : normParams) {
+                    float cur = _model->GetParameterValue(np.id);
+                    for (const auto& [pname, bound] : meta.valid_entry) {
+                        if (ids->GetId(pname.c_str()) == np.id) {
+                            char buf[128];
+                            snprintf(buf, sizeof(buf), " %s=%.1f(valid:%.1f..%.1f)",
+                                     pname.c_str(), cur, bound.min, bound.max);
+                            violStr += buf;
+                            break;
+                        }
+                    }
+                }
+                Logger::Warn(
+                    "[motion] %s: entry out of range —%s"
+                    " | normalise_rate=%.1f units/s normalisation_duration=%.3fs"
+                    " | actual_clip_start=t=%.3f (requested t=%.3f)"
+                    " | to hit t=%.3f trigger normalisation at t=%.3f",
+                    name.c_str(), violStr.c_str(),
+                    rate, normDuration,
+                    actualStart, cue_time,
+                    cue_time, recommended);
+
+                _normalisationActive        = true;
+                _normalisationPendingMotion = name;
+                _normalisationRate          = rate;         // retained for logging
+                _normalisationElapsed       = 0.0f;
+                _normalisationDuration      = normDuration;
+                _normalisationParams        = normParams;
+                return;
+            }
+        }
+    }
+
+    PlayMotionGroup(name);
 }
