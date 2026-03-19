@@ -357,7 +357,7 @@ void Live2DModel::Update(float deltaTime, const MouthState& mouth, const CueStat
             // only runs next frame (GetCurrentPriority still 0 this frame).
             // Set flags now so the guard holds on this transition frame.
             // Use the same entry-ramp logic (not a snap) for consistency with #5.
-            if (!_suppressBreathGuard) {
+            if (_reactionGuardMode != BreathGuardMode::None) {
                 _reactionFadeWeight += deltaTime / _cfg.animation.breath_guard_entry_fade_duration;
                 if (_reactionFadeWeight > 1.0f) _reactionFadeWeight = 1.0f;
                 _reactionWasActive = true;
@@ -392,31 +392,69 @@ void Live2DModel::Update(float deltaTime, const MouthState& mouth, const CueStat
     _model->SetParameterValue(_idParamMouthForm,  mouth.form, _cfg.lipsync.smoothing_form);
 
     // Breath guard: suppress / blend breath during and after reaction motions.
-    // Entry: _reactionFadeWeight ramps 0→1 over entry_fade_duration (fixes entry snap, #5).
-    // Exit:  _reactionFadeWeight ramps 1→0 over exit_fade_duration after reaction ends.
-    // Skipped entirely if the current reaction has breath_guard: "none".
+    //
+    //   "none"    — guard fully skipped; breath runs freely (no phase accumulation).
+    //   "lerp"    — breath suppressed during motion; fixed 0.5s exit blend after FadeOut completes.
+    //   "fadeout" — breath suppressed during motion hold; exit blend synchronized to the motion's
+    //               own FadeOut window. _reactionFadeWeight ramps 1→0 over FadeOutSeconds starting
+    //               the moment Cubism begins its FadeOut (IsTriggeredFadeOut() == true), so it
+    //               reaches 0 exactly when FadeOut completes and priority drops.  No post-motion
+    //               fade is needed.  Fixes the lerp snap for long-FadeOut reactions (GH #15).
     {
         const int currentPriority = _motionManager->GetCurrentPriority();
         if (currentPriority >= _cfg.animation.motion_priority_threshold || _normalisationActive) {
-            if (!_suppressBreathGuard) {
-                _reactionFadeWeight += deltaTime / _cfg.animation.breath_guard_entry_fade_duration;
-                if (_reactionFadeWeight > 1.0f) _reactionFadeWeight = 1.0f;
+            if (_reactionGuardMode != BreathGuardMode::None) {
+                if (_reactionGuardMode == BreathGuardMode::FadeOut && _reactionWasActive
+                    && !_fadeOutGuardActive) {
+                    // Scan for the active queue entry and check if Cubism has started FadeOut.
+                    // This branch fires while priority is still ≥ threshold (during the FadeOut
+                    // window), which is exactly when we need to begin the exit ramp.
+                    auto* entries = _motionManager->GetCubismMotionQueueEntries();
+                    for (int i = 0; i < entries->GetSize(); ++i) {
+                        Csm::CubismMotionQueueEntry* e = (*entries)[i];
+                        if (e && e->IsAvailable() && !e->IsFinished()
+                            && e->IsTriggeredFadeOut()) {
+                            _fadeOutGuardDuration = e->GetFadeOutSeconds();
+                            if (_fadeOutGuardDuration <= 0.0f)
+                                _fadeOutGuardDuration = _cfg.animation.breath_guard_exit_fade_duration;
+                            _fadeOutGuardElapsed = 0.0f;
+                            _fadeOutGuardActive  = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (_fadeOutGuardActive) {
+                    // Exit ramp: decrement while priority is still high (during FadeOut window).
+                    _fadeOutGuardElapsed += deltaTime;
+                    _reactionFadeWeight = 1.0f - (_fadeOutGuardElapsed / _fadeOutGuardDuration);
+                    if (_reactionFadeWeight <= 0.0f) {
+                        _reactionFadeWeight   = 0.0f;
+                        _fadeOutGuardActive   = false;
+                        // Keep _reactionWasActive = true so the else-if below snaps to 0 cleanly
+                        // on the frame priority finally drops.
+                    }
+                } else {
+                    // Entry phase: ramp _reactionFadeWeight 0→1.
+                    _reactionFadeWeight += deltaTime / _cfg.animation.breath_guard_entry_fade_duration;
+                    if (_reactionFadeWeight > 1.0f) _reactionFadeWeight = 1.0f;
+                }
                 _reactionWasActive = true;
             }
         } else if (_reactionWasActive) {
-            // TODO(renderer): exit breath guard fires only AFTER Cubism FadeOut completes (priority
-            // drops below threshold). During FadeOut, breath remains fully suppressed and its phase
-            // continues accumulating. The subsequent 0.5s exit fade is too short for large-amplitude
-            // params (AngleX ±15° ⟹ 30°/s apparent velocity at w=1→0). This causes the visible
-            // "snap" on motion exit for any reaction using breath_guard:"lerp" with >~35% range.
-            //
-            // Proper fix: begin the exit blend during FadeOut (overlap with Cubism weight ramp),
-            // or play idle at priority 1 alongside the reaction FadeOut so breath never zeros.
-            // Tracked in: https://github.com/hyang0129/live2d/issues/15
-            _reactionFadeWeight -= deltaTime / _cfg.animation.breath_guard_exit_fade_duration;
-            if (_reactionFadeWeight <= 0.0f) {
+            // Priority dropped (FadeOut complete).
+            if (_reactionGuardMode == BreathGuardMode::FadeOut) {
+                // FadeOut guard: should already be at 0.  Snap to 0 immediately as a safety net
+                // in case priority drops on the same frame the exit ramp armed (edge case).
                 _reactionFadeWeight = 0.0f;
+            } else {
+                // Lerp guard: fixed post-motion exit blend.
+                _reactionFadeWeight -= deltaTime / _cfg.animation.breath_guard_exit_fade_duration;
+                if (_reactionFadeWeight <= 0.0f) _reactionFadeWeight = 0.0f;
+            }
+            if (_reactionFadeWeight <= 0.0f) {
                 _reactionWasActive  = false;
+                _fadeOutGuardActive = false;
             }
         }
 
@@ -535,9 +573,14 @@ void Live2DModel::TriggerMotion(const std::string& name, float cue_time)
     // Resolve breath guard preference before any early returns.
     {
         auto bit = _reactionEntries.find(name);
-        _suppressBreathGuard = (bit != _reactionEntries.end()
-                                && bit->second.breath_guard == BreathGuardMode::None);
+        _reactionGuardMode = (bit != _reactionEntries.end())
+                             ? bit->second.breath_guard
+                             : BreathGuardMode::Lerp;
     }
+    // Reset FadeOut-mode guard state for the new motion.
+    _fadeOutGuardActive   = false;
+    _fadeOutGuardElapsed  = 0.0f;
+    _fadeOutGuardDuration = 0.0f;
 
     auto it = _reactionEntries.find(name);
     if (it != _reactionEntries.end() && it->second.entry_dependent

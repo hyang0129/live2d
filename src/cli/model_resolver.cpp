@@ -49,7 +49,9 @@ static ModelProfile ParseEntry(const json& entry)
                 }
                 {
                     const std::string bg = raw.value("breath_guard", std::string("lerp"));
-                    re.breath_guard = (bg == "none") ? BreathGuardMode::None : BreathGuardMode::Lerp;
+                    if      (bg == "none")    re.breath_guard = BreathGuardMode::None;
+                    else if (bg == "fadeout") re.breath_guard = BreathGuardMode::FadeOut;
+                    else                      re.breath_guard = BreathGuardMode::Lerp;
                 }
             }
             p.reactions[alias] = re;

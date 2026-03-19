@@ -117,7 +117,12 @@ private:
 
     float _reactionFadeWeight    = 0.0f;
     bool  _reactionWasActive     = false;
-    bool  _suppressBreathGuard   = false; // set from reaction's breath_guard registry field
+    BreathGuardMode _reactionGuardMode = BreathGuardMode::Lerp; // set from registry at TriggerMotion time
+
+    // FadeOut-mode guard state
+    bool  _fadeOutGuardActive   = false;  // true while exit ramp is running during FadeOut window
+    float _fadeOutGuardDuration = 0.0f;  // motion's FadeOutSeconds, cached at trigger
+    float _fadeOutGuardElapsed  = 0.0f;  // time since exit ramp armed
 
     bool _normalisationActive = false;
     std::string _normalisationPendingMotion;

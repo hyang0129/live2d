@@ -15,8 +15,9 @@ enum class OutOfRangeMode {
 };
 
 enum class BreathGuardMode {
-    Lerp, // default: lerp breath back in as reaction fades out
-    None, // no guard — breath runs freely through and after the reaction
+    Lerp,    // default: fixed 0.5s exit blend after FadeOut completes
+    None,    // no guard — breath runs freely through and after the reaction
+    FadeOut, // exit blend synchronized to motion's own FadeOut window (starts when Cubism begins fading)
 };
 
 struct ReactionEntry {

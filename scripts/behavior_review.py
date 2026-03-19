@@ -69,7 +69,7 @@ REVIEW_CRITERIA: dict[str, str] = {
     "tap":          "PASS: jolt + damped oscillation settling smoothly. FAIL: snap",
     # ── Sable reactions ──────────────────────────────────────────────────────
     "lean_in":      "PASS: very slow 1.2s onset, deep −10° hold, smooth 1s return. No snap",
-    "consult":      "PASS: clear +14° tilt + eye drop, smooth return to neutral. No snap",
+    "consult":      "PASS: clear +14° tilt + eye drop, smooth return — fadeout guard. No snap, no wobble",
     "glance_down":  "PASS: eyes drop visibly (−0.6), 0.4s hold, smooth 0.8s return. No snap",
     "address":      "PASS: chin-up +6° rise, hold, smooth return. No snap. Ignores head yaw",
 }

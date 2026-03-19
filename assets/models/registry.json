@@ -269,8 +269,8 @@
       },
       "consult": {
         "id": "Consult",
-        "note": "Chapter-open cue — AngleZ tilt +14° + EyeBallY −0.4, 0.8s hold, 2.5s total. No breath guard (AngleZ amplitude above ±10° breath noise floor; EyeBallY not a breath param). Sable signature: chapter_open / 'let me find the file'.",
-        "breath_guard": "none"
+        "note": "Chapter-open cue — AngleZ tilt +14° + EyeBallY −0.4, 0.8s hold, 2.5s total. FadeOut breath guard: exit ramp synchronized to 1.0s FadeOut window — breath fades in concurrently with curve return, reaching 0 suppression exactly when FadeOut completes. Sable signature: chapter_open / 'let me find the file'.",
+        "breath_guard": "fadeout"
       },
       "glance_down": {
         "id": "GlanceDown",
