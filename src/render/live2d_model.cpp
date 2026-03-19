@@ -404,6 +404,15 @@ void Live2DModel::Update(float deltaTime, const MouthState& mouth, const CueStat
                 _reactionWasActive = true;
             }
         } else if (_reactionWasActive) {
+            // TODO(renderer): exit breath guard fires only AFTER Cubism FadeOut completes (priority
+            // drops below threshold). During FadeOut, breath remains fully suppressed and its phase
+            // continues accumulating. The subsequent 0.5s exit fade is too short for large-amplitude
+            // params (AngleX ±15° ⟹ 30°/s apparent velocity at w=1→0). This causes the visible
+            // "snap" on motion exit for any reaction using breath_guard:"lerp" with >~35% range.
+            //
+            // Proper fix: begin the exit blend during FadeOut (overlap with Cubism weight ramp),
+            // or play idle at priority 1 alongside the reaction FadeOut so breath never zeros.
+            // Tracked in: https://github.com/hyang0129/live2d/issues/15
             _reactionFadeWeight -= deltaTime / _cfg.animation.breath_guard_exit_fade_duration;
             if (_reactionFadeWeight <= 0.0f) {
                 _reactionFadeWeight = 0.0f;

@@ -210,15 +210,15 @@
       },
       "wry": {
         "id": "wry",
-        "note": "Dry wit register — partial mouth curve (0.6), slight brow raise, eyes 90% open. Sable's primary expression; use for sardonic commentary, knowing asides, and the 'I told you so' beat."
+        "note": "Dry wit register — mouth curve 0.75, brow raise 0.2, eyes 90% open. Sable's primary expression; use for sardonic commentary, knowing asides, and the 'I told you so' beat."
       },
       "grave": {
         "id": "grave",
-        "note": "Solemn authority — fully open eyes (holds gaze), barely-lowered brow, slight frown (−0.5). Distinct from sad: no grief, no softening. Use for tragic facts, real casualty counts, endings that didn't go well."
+        "note": "Solemn authority — fully open eyes (holds gaze), brow −0.15, clear frown (−0.75). Distinct from sad: no grief, no softening. Use for tragic facts, real casualty counts, endings that didn't go well."
       },
       "hushed": {
         "id": "hushed",
-        "note": "Conspiratorial register — eyes 85% open (slightly narrowed), near-neutral mouth (0.15). The 'what I'm about to tell you didn't make the textbooks' face. Use for hushed and conspiratorial tone beats."
+        "note": "Conspiratorial register — eyes 78% open (noticeably hooded), neutral mouth (0.0). The 'what I'm about to tell you didn't make the textbooks' face. Use for hushed and conspiratorial tone beats."
       },
       "contemptuous": {
         "id": "contemptuous",
@@ -259,24 +259,28 @@
       },
       "tap": {
         "id": "Tap",
-        "note": "Startled tap reaction — damped oscillation simulating lateral impact and recovery."
+        "note": "Startled tap reaction — damped oscillation simulating lateral impact and recovery.",
+        "breath_guard": "none"
       },
       "lean_in": {
         "id": "LeanIn",
-        "note": "Key-revelation cue — slow AngleY dip to −5°, 1.0s hold, 2.5s total. Lerp breath guard. Pair with voice drop and pacing slow-down. Sable signature: key_revelation."
+        "note": "Key-revelation cue — slow AngleY dip to −10°, 1.0s hold, 3.2s total. No breath guard (amplitude above ±8° breath noise floor). Pair with voice drop and pacing slow-down. Sable signature: key_revelation.",
+        "breath_guard": "none"
       },
       "consult": {
         "id": "Consult",
-        "note": "Chapter-open cue — AngleZ tilt +12° + EyeBallY −0.4, 0.8s hold, 2.0s total. Reads as checking records. Sable signature: chapter_open / 'let me find the file'."
+        "note": "Chapter-open cue — AngleZ tilt +14° + EyeBallY −0.4, 0.8s hold, 2.5s total. No breath guard (AngleZ amplitude above ±10° breath noise floor; EyeBallY not a breath param). Sable signature: chapter_open / 'let me find the file'.",
+        "breath_guard": "none"
       },
       "glance_down": {
         "id": "GlanceDown",
-        "note": "Historical-gap beat — EyeBallY −0.6 + AngleY −4°, 0.4s hold, 1.0s total. No breath guard (short). Mock-sheepish punctuation. Sable signature: historical_gap.",
+        "note": "Historical-gap beat — EyeBallY −0.6 only, 0.4s hold, 1.4s total. No breath guard (EyeBallY not a breath param; AngleY removed as ±8° breath overwhelms −4° signal). Mock-sheepish punctuation. Sable signature: historical_gap.",
         "breath_guard": "none"
       },
       "address": {
         "id": "Address",
-        "note": "Correction-of-historians cue — drives AngleX to 0 (center) + AngleY +3° chin-up, 1.0s total. No breath guard. FadeIn 0.3s handles the turn-to-face from any off-axis position."
+        "note": "Correction-of-historians cue — AngleY +6° chin-up, 1.0s total. No breath guard (amplitude above ±8° breath noise floor; AngleX removed as ±15° breath overwhelms centering). FadeIn 0.3s handles the turn-to-face from any off-axis position.",
+        "breath_guard": "none"
       }
     }
   }

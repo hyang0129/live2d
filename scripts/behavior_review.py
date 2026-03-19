@@ -56,9 +56,9 @@ REVIEW_CRITERIA: dict[str, str] = {
     "curious":      "PASS: slightly widened eyes, raised brows — mild interest",
     "embarrassed":  "PASS: reversed brow direction, strained smile",
     # ── Sable expressions ────────────────────────────────────────────────────
-    "wry":          "PASS: partial smile (less than happy), eyes slightly narrowed",
-    "grave":        "PASS: eyes fully open (holds gaze), faint frown — solemn",
-    "hushed":       "PASS: eyes more hooded than neutral, mouth near-flat",
+    "wry":          "PASS: clear partial smile + brow raise — dry wit. More than neutral, less than happy",
+    "grave":        "PASS: eyes fully open (holds gaze), clearly downturned mouth — solemn, not sad",
+    "hushed":       "PASS: eyes noticeably hooded vs neutral, mouth neutral/flat — conspiratorial",
     "contemptuous": "PASS: brow furrow + upward mouth — mildly superior smug",
     # ── base reactions ───────────────────────────────────────────────────────
     "idle":         "PASS: visible head drift + breathing — no frozen positions",
@@ -68,10 +68,10 @@ REVIEW_CRITERIA: dict[str, str] = {
     "look_away":    "PASS: smooth turn, gradual 1.0s return. FAIL: snap at exit",
     "tap":          "PASS: jolt + damped oscillation settling smoothly. FAIL: snap",
     # ── Sable reactions ──────────────────────────────────────────────────────
-    "lean_in":      "PASS: very slow 1.2s onset, 1s hold, slow return — no rebound",
-    "consult":      "PASS: head tilt + eyes down, smooth 1.2s return. FAIL: snap",
-    "glance_down":  "PASS: quick eye drop, 0.4s hold, smooth 0.75s return (~1.4s)",
-    "address":      "PASS: head eases to camera + chin-up. Best seen after look_away",
+    "lean_in":      "PASS: very slow 1.2s onset, deep −10° hold, smooth 1s return. No snap",
+    "consult":      "PASS: clear +14° tilt + eye drop, smooth return to neutral. No snap",
+    "glance_down":  "PASS: eyes drop visibly (−0.6), 0.4s hold, smooth 0.8s return. No snap",
+    "address":      "PASS: chin-up +6° rise, hold, smooth return. No snap. Ignores head yaw",
 }
 
 

@@ -3,7 +3,7 @@
 	"FadeInTime": 0.2,
 	"FadeOutTime": 0.4,
 	"Parameters": [
-		{ "Id": "ParamBrowLY",    "Value": -0.1, "Blend": "Add" },
-		{ "Id": "ParamMouthForm", "Value": -0.5, "Blend": "Add" }
+		{ "Id": "ParamBrowLY",    "Value": -0.15, "Blend": "Add" },
+		{ "Id": "ParamMouthForm", "Value": -0.75, "Blend": "Add" }
 	]
 }
