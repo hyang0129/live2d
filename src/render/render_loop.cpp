@@ -52,6 +52,8 @@ bool RunRenderLoop(const SceneManifest& manifest,
 
     const auto wall_start = std::chrono::steady_clock::now();
 
+    const bool transparent = (manifest.background.type == BackgroundType::Transparent);
+
     Logger::Info("Rendering: frame 0/%d (0%%)", total_frames);
 
     for (int frame = 0; frame < total_frames; ++frame) {
@@ -99,6 +101,23 @@ bool RunRenderLoop(const SceneManifest& manifest,
 
         // ── Readback + encode ────────────────────────────────────────────────
         if (!offscreen.ReadPixels(pixels)) return false;
+
+        // Cubism's Normal shader outputs premultiplied alpha
+        // (gl_FragColor = vec4(color.rgb * color.a, color.a)).  FFmpeg's
+        // rawvideo rgba input assumes straight alpha, so we un-premultiply
+        // before piping — otherwise the ProRes overlay composites alpha twice
+        // and produces dark halos around the avatar.
+        if (transparent) {
+            for (size_t i = 0; i < pixels.size(); i += 4) {
+                const int a = pixels[i + 3];
+                if (a > 0 && a < 255) {
+                    pixels[i + 0] = static_cast<unsigned char>(std::min(255, pixels[i + 0] * 255 / a));
+                    pixels[i + 1] = static_cast<unsigned char>(std::min(255, pixels[i + 1] * 255 / a));
+                    pixels[i + 2] = static_cast<unsigned char>(std::min(255, pixels[i + 2] * 255 / a));
+                }
+            }
+        }
+
         if (!encoder.WriteFrame(pixels))   return false;
 
         // ── Per-frame debug log ──────────────────────────────────────────────
