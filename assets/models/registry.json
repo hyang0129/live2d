@@ -207,6 +207,22 @@
       "embarrassed": {
         "id": "embarrassed",
         "note": "Reversed brow direction (ParamBrowLY=+0.5), softened brow form, strained smile. Best achievable without blush parameter. Blush investigation pending (non-blocking)."
+      },
+      "wry": {
+        "id": "wry",
+        "note": "Dry wit register — partial mouth curve (0.6), slight brow raise, eyes 90% open. Sable's primary expression; use for sardonic commentary, knowing asides, and the 'I told you so' beat."
+      },
+      "grave": {
+        "id": "grave",
+        "note": "Solemn authority — fully open eyes (holds gaze), barely-lowered brow, slight frown (−0.5). Distinct from sad: no grief, no softening. Use for tragic facts, real casualty counts, endings that didn't go well."
+      },
+      "hushed": {
+        "id": "hushed",
+        "note": "Conspiratorial register — eyes 85% open (slightly narrowed), near-neutral mouth (0.15). The 'what I'm about to tell you didn't make the textbooks' face. Use for hushed and conspiratorial tone beats."
+      },
+      "contemptuous": {
+        "id": "contemptuous",
+        "note": "Mildly superior, affectionate contempt — eyes 90%, brow slightly raised (+0.1) with subtle furrow (BrowLForm −0.4), mouth 0.45. Use sparingly for myth-correction and 'the historians were not there' beats."
       }
     },
     "reactions": {
@@ -244,6 +260,23 @@
       "tap": {
         "id": "Tap",
         "note": "Startled tap reaction — damped oscillation simulating lateral impact and recovery."
+      },
+      "lean_in": {
+        "id": "LeanIn",
+        "note": "Key-revelation cue — slow AngleY dip to −5°, 1.0s hold, 2.5s total. Lerp breath guard. Pair with voice drop and pacing slow-down. Sable signature: key_revelation."
+      },
+      "consult": {
+        "id": "Consult",
+        "note": "Chapter-open cue — AngleZ tilt +12° + EyeBallY −0.4, 0.8s hold, 2.0s total. Reads as checking records. Sable signature: chapter_open / 'let me find the file'."
+      },
+      "glance_down": {
+        "id": "GlanceDown",
+        "note": "Historical-gap beat — EyeBallY −0.6 + AngleY −4°, 0.4s hold, 1.0s total. No breath guard (short). Mock-sheepish punctuation. Sable signature: historical_gap.",
+        "breath_guard": "none"
+      },
+      "address": {
+        "id": "Address",
+        "note": "Correction-of-historians cue — drives AngleX to 0 (center) + AngleY +3° chin-up, 1.0s total. No breath guard. FadeIn 0.3s handles the turn-to-face from any off-axis position."
       }
     }
   }

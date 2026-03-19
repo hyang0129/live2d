@@ -1,0 +1,29 @@
+{
+	"Version": 3,
+	"Meta": {
+		"Duration": 2.5,
+		"Fps": 30.0,
+		"Loop": false,
+		"AreBeziersRestricted": true,
+		"CurveCount": 1,
+		"TotalSegmentCount": 3,
+		"TotalPointCount": 4,
+		"UserDataCount": 0,
+		"TotalUserDataSize": 0
+	},
+	"Curves": [
+		{
+			"Target": "Parameter",
+			"Id": "ParamAngleY",
+			"FadeInTime": 0.15,
+			"FadeOutTime": 0.6,
+			"Segments": [
+				0.0, 0.0,
+				0, 0.8, -5.0,
+				0, 1.8, -5.0,
+				0, 2.5, 0.0
+			]
+		}
+	],
+	"UserData": []
+}

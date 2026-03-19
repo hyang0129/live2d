@@ -40,6 +40,22 @@
 			{
 				"Name": "embarrassed",
 				"File": "expressions/embarrassed.exp3.json"
+			},
+			{
+				"Name": "wry",
+				"File": "expressions/wry.exp3.json"
+			},
+			{
+				"Name": "grave",
+				"File": "expressions/grave.exp3.json"
+			},
+			{
+				"Name": "hushed",
+				"File": "expressions/hushed.exp3.json"
+			},
+			{
+				"Name": "contemptuous",
+				"File": "expressions/contemptuous.exp3.json"
 			}
 		],
 		"Motions": {
@@ -80,6 +96,34 @@
 				{
 					"File": "motions/nod_soft.motion3.json",
 					"FadeInTime": 0.1,
+					"FadeOutTime": 0.6
+				}
+			],
+			"LeanIn": [
+				{
+					"File": "motions/lean_in.motion3.json",
+					"FadeInTime": 0.15,
+					"FadeOutTime": 0.6
+				}
+			],
+			"Consult": [
+				{
+					"File": "motions/consult.motion3.json",
+					"FadeInTime": 0.15,
+					"FadeOutTime": 0.6
+				}
+			],
+			"GlanceDown": [
+				{
+					"File": "motions/glance_down.motion3.json",
+					"FadeInTime": 0.1,
+					"FadeOutTime": 0.5
+				}
+			],
+			"Address": [
+				{
+					"File": "motions/address.motion3.json",
+					"FadeInTime": 0.3,
 					"FadeOutTime": 0.6
 				}
 			]
