@@ -39,6 +39,7 @@ bool RunRenderLoop(const SceneManifest& manifest,
         1.0f);
 
     // Clear colour
+    const bool transparent = (manifest.background.type == BackgroundType::Transparent);
     float cr = 0.f, cg = 0.f, cb = 0.f, ca = 0.f;
     if (manifest.background.type == BackgroundType::Color) {
         cr = manifest.background.r;
@@ -52,8 +53,6 @@ bool RunRenderLoop(const SceneManifest& manifest,
 
     const auto wall_start = std::chrono::steady_clock::now();
 
-    const bool transparent = (manifest.background.type == BackgroundType::Transparent);
-
     Logger::Info("Rendering: frame 0/%d (0%%)", total_frames);
 
     for (int frame = 0; frame < total_frames; ++frame) {
@@ -61,12 +60,8 @@ bool RunRenderLoop(const SceneManifest& manifest,
 
         // Progress log at 0 / 33 / 67 / 100 %
         const int pct = (frame * 100) / total_frames;
-        if (frame > 0 && (pct == 33 || pct == 67)) {
-            static int last_pct = 0;
-            if (pct != last_pct) {
-                Logger::Info("Rendering: frame %d/%d (%d%%)", frame, total_frames, pct);
-                last_pct = pct;
-            }
+        if (frame > 0 && (pct == 33 || pct == 67) && (pct != (((frame - 1) * 100) / total_frames))) {
+            Logger::Info("Rendering: frame %d/%d (%d%%)", frame, total_frames, pct);
         }
 
         // ── Dispatch cues ───────────────────────────────────────────────────
