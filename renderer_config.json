@@ -1,0 +1,62 @@
+{
+  "_comment": "Runtime configuration for the Live2D renderer. All values here are tuning knobs — changing them takes effect on the next renderer invocation with no C++ rebuild required.",
+
+  "breath": {
+    "_comment": "Idle breathing animation parameters. Each axis: offset (rest position), peak (amplitude), cycle (period in seconds), weight (blend contribution).",
+    "parameters": {
+      "angle_x":      {"offset": 0.0, "peak": 8.0,   "cycle": 6.5345,  "weight": 0.5},
+      "angle_y":      {"offset": 0.0, "peak": 5.0,   "cycle": 3.5345,  "weight": 0.5},
+      "angle_z":      {"offset": 0.0, "peak": 6.0,   "cycle": 5.5345,  "weight": 0.5},
+      "body_angle_x": {"offset": 0.0, "peak": 2.5,   "cycle": 15.5345, "weight": 0.5},
+      "breath":       {"offset": 0.5, "peak": 0.5,   "cycle": 3.2345,  "weight": 0.5}
+    }
+  },
+
+  "lipsync": {
+    "_comment": "Rhubarb phoneme-to-mouth-parameter mappings. open = MouthOpenY value [0,1], form = MouthForm value [-1,1].",
+    "shapes": {
+      "X": {"open": 0.0, "form":  0.0},
+      "A": {"open": 0.1, "form": -1.0},
+      "B": {"open": 1.0, "form":  0.0},
+      "C": {"open": 0.8, "form":  0.5},
+      "D": {"open": 0.3, "form":  0.0},
+      "E": {"open": 0.6, "form":  0.5},
+      "F": {"open": 0.2, "form": -0.5},
+      "G": {"open": 0.4, "form":  0.0},
+      "H": {"open": 0.3, "form":  0.3}
+    },
+    "_comment_smoothing": "Blend weights applied when writing mouth params each frame. Higher = more responsive, lower = smoother.",
+    "smoothing": {
+      "open": 0.8,
+      "form": 0.8
+    }
+  },
+
+  "animation": {
+    "_comment": "Reaction motion and breath guard tuning.",
+    "breath_guard_fade_duration": 0.5,
+    "_comment_priority": "Minimum motion priority level that activates the breath guard.",
+    "motion_priority_threshold": 2
+  },
+
+  "normalisation": {
+    "_comment": "Out-of-range parameter correction settings.",
+    "minimum_duration": 0.1,
+    "_comment_auto_rate": "When normalise_rate=0 (auto), rate = max_breath_speed * auto_rate_multiplier. fallback_rate used when breath speed unavailable.",
+    "auto_rate_multiplier": 2.0,
+    "fallback_rate": 15.0
+  },
+
+  "render": {
+    "_comment": "Post-scene padding so the avatar settles after the last cue.",
+    "scene_tail_duration": 1.0
+  },
+
+  "ffmpeg": {
+    "_comment": "Codec quality settings per output format.",
+    "av1":    {"crf": 30, "bitrate": 0},
+    "prores": {"profile": 4},
+    "h264":   {"crf": 23, "preset": "medium"},
+    "aac":    {"bitrate": "128k"}
+  }
+}
