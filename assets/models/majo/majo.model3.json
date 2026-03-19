@@ -82,14 +82,14 @@
 				{
 					"File": "motions/look_away.motion3.json",
 					"FadeInTime": 0.15,
-					"FadeOutTime": 0.6
+					"FadeOutTime": 1.0
 				}
 			],
 			"Tap": [
 				{
 					"File": "motions/tap.motion3.json",
 					"FadeInTime": 0.05,
-					"FadeOutTime": 0.5
+					"FadeOutTime": 0.8
 				}
 			],
 			"Nod": [
@@ -103,21 +103,21 @@
 				{
 					"File": "motions/lean_in.motion3.json",
 					"FadeInTime": 0.15,
-					"FadeOutTime": 0.6
+					"FadeOutTime": 0.8
 				}
 			],
 			"Consult": [
 				{
 					"File": "motions/consult.motion3.json",
 					"FadeInTime": 0.15,
-					"FadeOutTime": 0.6
+					"FadeOutTime": 1.0
 				}
 			],
 			"GlanceDown": [
 				{
 					"File": "motions/glance_down.motion3.json",
 					"FadeInTime": 0.1,
-					"FadeOutTime": 0.5
+					"FadeOutTime": 0.7
 				}
 			],
 			"Address": [

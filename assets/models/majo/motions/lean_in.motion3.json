@@ -1,7 +1,7 @@
 {
 	"Version": 3,
 	"Meta": {
-		"Duration": 2.5,
+		"Duration": 3.2,
 		"Fps": 30.0,
 		"Loop": false,
 		"AreBeziersRestricted": true,
@@ -19,9 +19,9 @@
 			"FadeOutTime": 0.6,
 			"Segments": [
 				0.0, 0.0,
-				0, 0.8, -5.0,
-				0, 1.8, -5.0,
-				0, 2.5, 0.0
+				0, 1.2, -5.0,
+				0, 2.2, -5.0,
+				0, 3.2, 0.0
 			]
 		}
 	],

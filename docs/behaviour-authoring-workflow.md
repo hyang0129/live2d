@@ -174,7 +174,6 @@ Produce a labeled review video for each review round. Each clip must:
 - Show the reaction
 - Show **at least 5 seconds of idle after the reaction ends** (so the reviewer sees the full breath resumption and recovery)
 - Carry a text overlay: clip label + round number (e.g. `NOD [r1]`)
-- Carry an explanatory sub-line: what the clip should do and what a passing result looks like
 - Carry a **visible timestamp** (e.g. `t=0.00s`) in a corner, updating every frame
 
 Every clip must be at least 5 seconds total. Use a sentinel `{"time": T, "emotion": "neutral"}` cue to ensure the idle buffer renders.
@@ -182,6 +181,44 @@ Every clip must be at least 5 seconds total. Use a sentinel `{"time": T, "emotio
 Output target: `results/tests/<feature>/review_<feature>.mp4` (see [CLAUDE.md](../CLAUDE.md) for the full output convention).
 
 If `scripts/behavior_review.py` does not support a required test case, write a one-off script or manifest for it. Do not block on script limitations.
+
+### Required: review description sheet
+
+**Before asking the human to watch any review video, write a description sheet as text in your response.** The human reads this first, then watches the video. Do not send the video path alone — a reviewer who does not know what to look for cannot give useful feedback.
+
+For each clip in the review, provide a row in this table:
+
+| Clip | What it does | PASS looks like | FAIL looks like |
+|------|-------------|-----------------|-----------------|
+| ... | ... | ... | ... |
+
+If you cannot describe pass/fail criteria for a behavior, go back to the authoring notes before generating the review — undefined criteria means the design intent was not documented clearly enough.
+
+**Standard criteria for base behaviors:**
+
+| Clip | What it does | PASS | FAIL |
+|------|-------------|------|------|
+| `idle` | Default ambient loop | Visible breathing and head movement; gaze drifts; no frozen frames | Head frozen or held at one position |
+| `nod_review` | **Internal artifact — NOT a discourse nod.** Holds the head at a downward pitch for ~3.5s. Used to inspect breath resumption after a long hold. | Head eases smoothly back to neutral at the end; no visible jolt or snap | Sharp discontinuity when the hold ends |
+| `nod` | Standard discourse acknowledgement | Head dips smoothly ~30–35% of pitch range, brief upward rebound, returns to neutral over ~1.5s; clean exit | Dip too deep (looks like a bow), too shallow (invisible), or snaps on exit |
+| `deep_nod` | Emphatic acknowledgement | Visibly larger dip than `nod` (~50% of pitch range); same smooth shape and clean exit | Indistinguishable from `nod`, or snaps on exit |
+| `look_away` | Thinking/recalling gaze shift | Head turns smoothly to one side, brief pause, then eases gradually back to center; no jolt at exit | Return is too fast (snap), or there is a discontinuity when the motion ends |
+| `tap` | Startled or touch-response reaction | Brief sudden jolt with damped oscillation settling smoothly to neutral; feels like physical impact | Oscillation doesn't feel physical, or there is a jump/snap at the end |
+
+**For persona-specific behaviors**, derive criteria from the design intent recorded at authoring time. See the Sable spec entries below as an example of the required level of specificity.
+
+**Standard criteria for Sable spec v1.1 behaviors:**
+
+| Clip | What it does | PASS | FAIL |
+|------|-------------|------|------|
+| `wry` | Dry-wit knowing smile | More mouth curve than neutral but less than happy; eyes very slightly narrowed (alert, not squinting); brow barely raised; overall read: "I know something you don't" | Indistinguishable from neutral, or reads as happy |
+| `grave` | Solemn authority | Eyes fully open (holds your gaze); faint downward set to the mouth; barely perceptible brow tension; heavier than neutral but not sad | Looks identical to neutral, or reads as sad |
+| `hushed` | Conspiratorial narrowing | Eyes noticeably more hooded than neutral but not bored-level; mouth less curved than neutral (near-flat, not frowning) | Indistinguishable from neutral or bored |
+| `contemptuous` | Mildly superior affectionate contempt | Slight brow furrow (not angry), slight upward mouth curve (smug), eyes slightly narrowed | Reads as angry, or indistinguishable from wry |
+| `lean_in` | Key-revelation cue | Head dips very gradually (~1.2s to peak), holds ~1s, eases slowly back; unhurried and deliberate; no rebound; smooth exit | Onset too fast (reads as nod), has a rebound, or snaps on exit |
+| `consult` | Chapter-open / "let me find the file" | Head tilts to one side while eyes shift slightly downward as if reading; holds briefly; eases smoothly back | Tilts wrong direction, too fast, or snaps on exit |
+| `glance_down` | Historical-gap self-deprecating beat | Eyes drop quickly, hold ~0.4s, return; head dips slightly later than eyes; total ~1.4s; punchy and brief | Too slow (loses the punctuation quality), holds too long, or snaps on exit |
+| `address` | Correction-of-historians direct address | Head eases to face camera (yaw centering) with a slight chin-up lift; most legible when triggered from an off-center position (e.g. after `look_away`) | No visible yaw centering, chin-up absent, or too abrupt |
 
 ---
 
@@ -341,3 +378,17 @@ For a new model, do not assume these mappings — calibrate first.
 ### Lesson 7 — Reaction vocabulary naming convention
 
 Script-writing agents use reaction labels when composing scene manifests. The label `nod` is the one they will default to for any discourse acknowledgement beat. Name the standard (subtle) version `nod` and reserve more expressive variants for explicit labels like `deep_nod`. This prevents script writers from unintentionally triggering an emphatic reaction when they want a light acknowledgement.
+
+---
+
+### Lesson 8 — Fast linear return segments cause perceived snap, even with lerp guard
+
+**What happened:** `look_away` (Sable sable_r1 review) had a visible snap at the end despite the lerp breath guard being active. Root cause: the motion curve returned AngleX from 20° to 0° linearly over 0.5s — a rate of 40°/s — which reads as abrupt. The lerp guard suppresses the *breath resumption* snap, but it does not smooth out a fast in-curve return within the motion itself.
+
+The same pattern recurred in `consult` (AngleZ 12° → 0° over 0.7s) and `glance_down` (AngleY −4° → 0° over 0.35s).
+
+**Pre-existing defect:** `look_away` and `tap` had this issue from initial authoring but it was not caught in review rounds 1–3 because no review description told the reviewer what a clean exit should look like.
+
+**Rule:** The return-to-zero phase of any motion clip should take approximately the same time as the onset phase. A clip that eases in over 0.5s should ease out over at least 0.5s. For large-deflection clips (>10° or >50% of the parameter's breath amplitude), the return phase should be ≥ 1.0s.
+
+**Updated FadeOutTime guidance:** For clips whose motion curve includes a return-to-zero segment, the motion-group FadeOutTime in `model3.json` should be set to ≥ the lerp guard duration (0.5s) plus the per-curve FadeOutTime. For large-amplitude clips, use 1.0s at the motion-group level.
