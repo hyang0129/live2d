@@ -18,9 +18,9 @@ public:
 
     // Reads back the current FBO contents to an RGBA byte buffer (top-to-bottom).
     // OpenGL origin is bottom-left, so rows are flipped during readback.
-    // NOTE: When using transparent mode, the Cubism renderer outputs premultiplied
-    // alpha (RGB already multiplied by A).  Callers that pipe to FFmpeg as straight-
-    // alpha rgba must un-premultiply after this call (see render_loop.cpp).
+    // NOTE: Cubism always renders with premultiplied alpha (blend ONE/ONE_MINUS_SRC_ALPHA,
+    // shader multiplies RGB by A before output).  Callers that forward pixels to
+    // FFmpeg as straight-alpha rgba must un-premultiply after this call (see render_loop.cpp).
     bool ReadPixels(std::vector<unsigned char>& out) const;
 
     void Release();

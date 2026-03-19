@@ -60,7 +60,7 @@ bool RunRenderLoop(const SceneManifest& manifest,
 
         // Progress log at 0 / 33 / 67 / 100 %
         const int pct = (frame * 100) / total_frames;
-        if (frame > 0 && (pct == 33 || pct == 67) && (pct != (((frame - 1) * 100) / total_frames))) {
+        if (frame > 0 && (pct == 33 || pct == 67) && pct != ((frame - 1) * 100) / total_frames) {
             Logger::Info("Rendering: frame %d/%d (%d%%)", frame, total_frames, pct);
         }
 
@@ -97,11 +97,11 @@ bool RunRenderLoop(const SceneManifest& manifest,
         // ── Readback + encode ────────────────────────────────────────────────
         if (!offscreen.ReadPixels(pixels)) return false;
 
-        // Cubism's Normal shader outputs premultiplied alpha
-        // (gl_FragColor = vec4(color.rgb * color.a, color.a)).  FFmpeg's
-        // rawvideo rgba input assumes straight alpha, so we un-premultiply
-        // before piping — otherwise the ProRes overlay composites alpha twice
-        // and produces dark halos around the avatar.
+        // Cubism's Normal blend mode outputs premultiplied alpha to the render
+        // target (RGB already multiplied by A, blend ONE/ONE_MINUS_SRC_ALPHA).
+        // FFmpeg's rawvideo rgba input assumes straight alpha, so we
+        // un-premultiply before piping — otherwise the ProRes overlay
+        // composites alpha twice and produces dark halos around the avatar.
         if (transparent) {
             for (size_t i = 0; i < pixels.size(); i += 4) {
                 const int a = pixels[i + 3];
