@@ -40,6 +40,7 @@ bool RunRenderLoop(const SceneManifest& manifest,
         1.0f);
 
     // Clear colour
+    const bool transparent = (manifest.background.type == BackgroundType::Transparent);
     float cr = 0.f, cg = 0.f, cb = 0.f, ca = 0.f;
     if (manifest.background.type == BackgroundType::Color) {
         cr = manifest.background.r;
@@ -60,12 +61,8 @@ bool RunRenderLoop(const SceneManifest& manifest,
 
         // Progress log at 0 / 33 / 67 / 100 %
         const int pct = (frame * 100) / total_frames;
-        if (frame > 0 && (pct == 33 || pct == 67)) {
-            static int last_pct = 0;
-            if (pct != last_pct) {
-                Logger::Info("Rendering: frame %d/%d (%d%%)", frame, total_frames, pct);
-                last_pct = pct;
-            }
+        if (frame > 0 && (pct == 33 || pct == 67) && pct != ((frame - 1) * 100) / total_frames) {
+            Logger::Info("Rendering: frame %d/%d (%d%%)", frame, total_frames, pct);
         }
 
         // ── Dispatch cues ───────────────────────────────────────────────────
@@ -100,6 +97,23 @@ bool RunRenderLoop(const SceneManifest& manifest,
 
         // ── Readback + encode ────────────────────────────────────────────────
         if (!offscreen.ReadPixels(pixels)) return false;
+
+        // Cubism's Normal blend mode outputs premultiplied alpha to the render
+        // target (RGB already multiplied by A, blend ONE/ONE_MINUS_SRC_ALPHA).
+        // FFmpeg's rawvideo rgba input assumes straight alpha, so we
+        // un-premultiply before piping — otherwise the ProRes overlay
+        // composites alpha twice and produces dark halos around the avatar.
+        if (transparent) {
+            for (size_t i = 0; i < pixels.size(); i += 4) {
+                const int a = pixels[i + 3];
+                if (a > 0 && a < 255) {
+                    pixels[i + 0] = static_cast<unsigned char>(std::min(255, pixels[i + 0] * 255 / a));
+                    pixels[i + 1] = static_cast<unsigned char>(std::min(255, pixels[i + 1] * 255 / a));
+                    pixels[i + 2] = static_cast<unsigned char>(std::min(255, pixels[i + 2] * 255 / a));
+                }
+            }
+        }
+
         if (!encoder.WriteFrame(pixels))   return false;
 
         // ── Per-frame debug log ──────────────────────────────────────────────
