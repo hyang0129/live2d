@@ -29,9 +29,11 @@ ROOT = Path(__file__).resolve().parent.parent
 # ── Motion parameters ──────────────────────────────────────────────────────────
 CONSULT_DURATION = 2.5    # Meta.Duration in consult.motion3.json
 CONSULT_FADEOUT  = 1.0    # FadeOutTime in majo.model3.json Motions.Consult
-HOLD_END         = CONSULT_DURATION - CONSULT_FADEOUT   # 1.5s
+HOLD_END         = CONSULT_DURATION - CONSULT_FADEOUT   # 1.5s — FadeOut / guard arm point
+GUARD_DURATION   = 2.0 * CONSULT_FADEOUT                # 2.0s — breath guard exit ramp (2×)
+GUARD_END        = HOLD_END + GUARD_DURATION            # 3.5s — guard reaches 0
 ENTRY_FADE       = 0.15   # breath_guard_entry_fade_duration (renderer default)
-CLIP_DUR         = 9.0    # 6.5s idle buffer after motion ends
+CLIP_DUR         = 9.0    # 5.5s idle buffer after guard ends
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
 AUDIO_SRC     = ROOT / "tests/fixtures/cheesetest/wav/scene_01.wav"
@@ -101,14 +103,15 @@ def build_vf() -> str:
 
       [always]         idle  [looping]
       [t=0.0–1.5]      consult  HOLD  :  1.5s … 0.1s remaining
-      [t=1.5–2.5]      consult  FADEOUT  :  1.0s … 0.1s remaining
+      [t=1.5–2.5]      consult  FADEOUT  :  1.0s … 0.1s remaining   (cubism weight 1→0)
       [t=0.15–1.5]     breath-guard  SUPPRESSED  (w=1.00)
-      [t=1.5–2.5]      breath-guard  FADEOUT  w=1.00 … 0.10
-      [t=1.5–2.5]      cubism-FadeOut  :  1.0s … 0.1s  ← same window as breath-guard
+      [t=1.5–3.5]      breath-guard  FADEOUT  w=1.00 … 0.50 … 0.00  (2× FadeOut duration)
+      [t=1.5–2.5]      cubism-FadeOut  :  1.0s … 0.1s               (guard continues after this)
     """
     T0 = 0.0
     TH = HOLD_END           # 1.5s — FadeOut starts; breath-guard exit ramp arms
-    TE = CONSULT_DURATION   # 2.5s — motion ends; priority drops; guard reaches 0
+    TE = CONSULT_DURATION   # 2.5s — Cubism FadeOut ends; priority drops; guard at w=0.5
+    TG = GUARD_END          # 3.5s — breath-guard reaches 0
 
     LH = 43     # line height including padding (px)
     Y0 = 175    # y-from-bottom for the bottommost left line
@@ -157,16 +160,17 @@ def build_vf() -> str:
         enable=_between(ENTRY_FADE, TH),
         color="orange",
     ))
-    # Fadeout phase: weight decreasing from 1.0→0.0
-    # weight at interval start t = (TE - t) / CONSULT_FADEOUT
+    # Fadeout phase (t=1.5–3.5s): weight 1.0→0.0 over GUARD_DURATION (2.0s).
+    # rem here = TG - t (time remaining in the guard window)
+    # weight = rem / GUARD_DURATION
     parts.extend(_seq(
-        lambda rem: f"breath-guard  FADEOUT  w={rem / CONSULT_FADEOUT:.2f}",
-        TH, TE, Y0 + LH * 2, color="orange",
+        lambda rem: f"breath-guard  FADEOUT  w={rem / GUARD_DURATION:.2f}",
+        TH, TG, Y0 + LH * 2, color="orange",
     ))
 
-    # ── Line 4: cubism-FadeOut — appears at SAME time as breath-guard fadeout
+    # ── Line 4: cubism-FadeOut — only t=1.5–2.5s (guard continues after this)
     parts.extend(_seq(
-        lambda rem: f"cubism-FadeOut : {rem:.1f}s  <- same window as breath-guard",
+        lambda rem: f"cubism-FadeOut : {rem:.1f}s  <- guard continues after this",
         TH, TE, Y0 + LH * 3, color="cyan",
     ))
 
@@ -269,10 +273,11 @@ def main() -> None:
     print(f"  Manifest : {MAN_PATH}")
     print()
     print("Phase timeline (baked into overlays):")
-    print(f"  t=0.000 – {ENTRY_FADE:.3f}s  breath-guard entry ramp (brief)")
-    print(f"  t={ENTRY_FADE:.3f} – {HOLD_END:.3f}s  consult HOLD  |  breath-guard SUPPRESSED")
-    print(f"  t={HOLD_END:.3f} – {CONSULT_DURATION:.3f}s  consult FADEOUT  |  cubism-FadeOut  |  breath-guard FADEOUT  (simultaneous)")
-    print(f"  t={CONSULT_DURATION:.3f} – {CLIP_DUR:.1f}s    idle only")
+    print(f"  t=0.000  – {ENTRY_FADE:.3f}s  breath-guard entry ramp (brief)")
+    print(f"  t={ENTRY_FADE:.3f}  – {HOLD_END:.3f}s  consult HOLD  |  breath-guard SUPPRESSED (w=1.00)")
+    print(f"  t={HOLD_END:.3f}  – {CONSULT_DURATION:.3f}s  consult FADEOUT  |  cubism-FadeOut  |  breath-guard FADEOUT (w=1.00→0.50)")
+    print(f"  t={CONSULT_DURATION:.3f}  – {GUARD_END:.3f}s  idle (priority dropped)  |  breath-guard FADEOUT continues (w=0.50→0.00)")
+    print(f"  t={GUARD_END:.3f}  – {CLIP_DUR:.1f}s  idle only — guard complete, no snap")
 
 
 if __name__ == "__main__":
