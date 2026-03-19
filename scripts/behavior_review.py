@@ -41,6 +41,39 @@ TEMPLATE_MANIFEST = ROOT / "tests/fixtures/cheesetest/scene_01_manifest.json"
 REGISTRY_PATH     = ROOT / "assets/models/registry.json"
 DRAFT_ID          = "__review_draft__"
 
+# Per-behavior review criteria displayed as a top overlay in the review video.
+# Key: the emotion alias or reaction alias used in the registry / cue.
+# Value: one line (~75 chars max) stating what PASS looks like.
+# Add entries here whenever a new behavior is registered.
+REVIEW_CRITERIA: dict[str, str] = {
+    # ── base expressions ────────────────────────────────────────────────────
+    "neutral":      "PASS: calm resting face — slight mouth curve, eyes open",
+    "happy":        "PASS: warm smile, eyes closed/squinting, brows raised",
+    "surprised":    "PASS: wide eyes x2, raised brow, open mouth",
+    "bored":        "PASS: heavy-lidded 80%, flat mouth — disengaged",
+    "sad":          "PASS: soft eyes, arched brow, strongly downturned mouth",
+    "angry":        "PASS: brow fully down, negative mouth, open mouth",
+    "curious":      "PASS: slightly widened eyes, raised brows — mild interest",
+    "embarrassed":  "PASS: reversed brow direction, strained smile",
+    # ── Sable expressions ────────────────────────────────────────────────────
+    "wry":          "PASS: partial smile (less than happy), eyes slightly narrowed",
+    "grave":        "PASS: eyes fully open (holds gaze), faint frown — solemn",
+    "hushed":       "PASS: eyes more hooded than neutral, mouth near-flat",
+    "contemptuous": "PASS: brow furrow + upward mouth — mildly superior smug",
+    # ── base reactions ───────────────────────────────────────────────────────
+    "idle":         "PASS: visible head drift + breathing — no frozen positions",
+    "nod_review":   "INTERNAL TOOL — NOT a nod. 3.5s hold. PASS: smooth return, no snap",
+    "nod":          "PASS: smooth dip ~30-35% pitch range + rebound, clean exit",
+    "deep_nod":     "PASS: visibly deeper than nod (~50% pitch), smooth exit",
+    "look_away":    "PASS: smooth turn, gradual 1.0s return. FAIL: snap at exit",
+    "tap":          "PASS: jolt + damped oscillation settling smoothly. FAIL: snap",
+    # ── Sable reactions ──────────────────────────────────────────────────────
+    "lean_in":      "PASS: very slow 1.2s onset, 1s hold, slow return — no rebound",
+    "consult":      "PASS: head tilt + eyes down, smooth 1.2s return. FAIL: snap",
+    "glance_down":  "PASS: quick eye drop, 0.4s hold, smooth 0.75s return (~1.4s)",
+    "address":      "PASS: head eases to camera + chin-up. Best seen after look_away",
+}
+
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -52,6 +85,8 @@ def _build_drawtext_filter(behaviors: list, dur: float) -> str:
     parts = []
     for i, b in enumerate(behaviors):
         t0, t1 = i * dur, (i + 1) * dur
+
+        # Bottom overlay: behavior label
         e = _escape_drawtext(b["label"])
         parts.append(
             f"drawtext=text='{e}'"
@@ -60,6 +95,19 @@ def _build_drawtext_filter(behaviors: list, dur: float) -> str:
             f":x=(w-tw)/2:y=h-120"
             f":box=1:boxcolor=black@0.65:boxborderw=14"
         )
+
+        # Top overlay: what to look for
+        key  = b["cue_value"]
+        desc = REVIEW_CRITERIA.get(key, "See authoring notes for review criteria")
+        desc_e = _escape_drawtext(desc)
+        parts.append(
+            f"drawtext=text='{desc_e}'"
+            f":enable='between(t\\,{t0:.3f}\\,{t1:.3f})'"
+            f":fontsize=24:fontcolor=yellow"
+            f":x=(w-tw)/2:y=40"
+            f":box=1:boxcolor=black@0.7:boxborderw=10"
+        )
+
     return ",".join(parts)
 
 
