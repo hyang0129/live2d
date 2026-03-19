@@ -20,6 +20,7 @@
 #include <map>
 #include "cue_sequencer.h"
 #include "lipsync_sequencer.h"
+#include "renderer_config.h"
 #include "../cli/model_resolver.h"
 
 class Live2DModel : public Csm::CubismUserModel {
@@ -54,6 +55,9 @@ public:
     // Scale breath speed: 2.0 = twice as fast (halves cycle period).
     // Must be called after Load().
     void SetBreathSpeed(float multiplier);
+    // Apply renderer config. Must be called BEFORE Load() so SetupModel uses
+    // the correct breath parameters.
+    void SetConfig(const RendererConfig& cfg);
 
 private:
     struct NormParam {
@@ -131,4 +135,7 @@ private:
     std::vector<BreathParam> _breathBaseParams;
     // Per-parameter maximum speed from breath (units/s), computed at load
     std::map<const Csm::CubismId*, float> _breathMaxSpeed;
+
+    // Renderer config (set via SetConfig before Load; all fields have safe defaults)
+    RendererConfig _cfg;
 };

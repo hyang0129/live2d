@@ -2,21 +2,18 @@
 #include <algorithm>
 #include <cmath>
 
-// Rhubarb → Live2D parameter mapping (from cli_design.md)
-MouthState LipsyncSequencer::ShapeToState(char shape)
+void LipsyncSequencer::SetLipsyncConfig(const LipsyncConfig& cfg)
 {
-    switch (shape) {
-        case 'X': return { 0.0f,  0.0f };
-        case 'A': return { 0.1f, -1.0f };
-        case 'B': return { 1.0f,  0.0f };
-        case 'C': return { 0.8f,  0.5f };
-        case 'D': return { 0.3f,  0.0f };
-        case 'E': return { 0.6f,  0.5f };
-        case 'F': return { 0.2f, -0.5f };
-        case 'G': return { 0.4f,  0.0f };
-        case 'H': return { 0.3f,  0.3f };
-        default:  return { 0.0f,  0.0f };
-    }
+    _lipsyncCfg = cfg;
+}
+
+// Rhubarb → Live2D parameter mapping (driven by renderer_config.json)
+MouthState LipsyncSequencer::ShapeToState(char shape) const
+{
+    auto it = _lipsyncCfg.shapes.find(shape);
+    if (it != _lipsyncCfg.shapes.end())
+        return { it->second.open, it->second.form };
+    return { 0.0f, 0.0f };  // unknown shape → closed mouth
 }
 
 MouthState LipsyncSequencer::Lerp(const MouthState& a, const MouthState& b, float t)

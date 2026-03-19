@@ -18,7 +18,8 @@ FfmpegEncoder::~FfmpegEncoder()
 bool FfmpegEncoder::Open(const std::string& output_path,
                          int width, int height, int fps,
                          bool transparent,
-                         const std::string& audio_path)
+                         const std::string& audio_path,
+                         const FfmpegCodecConfig& codec_cfg)
 {
     _final_path = output_path;
 
@@ -61,14 +62,19 @@ bool FfmpegEncoder::Open(const std::string& output_path,
         cmd << " -i \"" << audio_path << "\"";
 
     if (use_av1)
-        cmd << " -c:v libvpx-vp9 -pix_fmt yuva420p -crf 30 -b:v 0";
+        cmd << " -c:v libvpx-vp9 -pix_fmt yuva420p"
+            << " -crf " << codec_cfg.av1.crf
+            << " -b:v " << codec_cfg.av1.bitrate;
     else if (use_prores)
-        cmd << " -c:v prores_ks -profile:v 4 -pix_fmt yuva444p10le";
+        cmd << " -c:v prores_ks -profile:v " << codec_cfg.prores.profile
+            << " -pix_fmt yuva444p10le";
     else
-        cmd << " -c:v libx264 -pix_fmt yuv420p";
+        cmd << " -c:v libx264 -pix_fmt yuv420p"
+            << " -crf " << codec_cfg.h264.crf
+            << " -preset " << codec_cfg.h264.preset;
 
     if (!audio_path.empty())
-        cmd << " -c:a aac";
+        cmd << " -c:a aac -b:a " << codec_cfg.aac.bitrate;
 
     cmd << " \"" << _tmp_path << "\" 2>&1";
 

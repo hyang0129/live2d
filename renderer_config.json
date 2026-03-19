@@ -1,0 +1,63 @@
+{
+  "_comment": "Runtime configuration for the Live2D renderer. All values here are tuning knobs — changing them takes effect on the next renderer invocation with no C++ rebuild required.",
+
+  "breath": {
+    "_comment": "Idle breathing animation. Each axis: offset (rest position), peak (amplitude), cycle (period in seconds), weight (blend contribution). Current values are post-#8 (52% amplitude reduction from original peaks of 15/8/10/4).",
+    "parameters": {
+      "angle_x":      {"offset": 0.0, "peak":  7.2,  "cycle":  6.5345, "weight": 0.5},
+      "angle_y":      {"offset": 0.0, "peak":  4.5,  "cycle":  3.5345, "weight": 0.5},
+      "angle_z":      {"offset": 0.0, "peak":  5.4,  "cycle":  5.5345, "weight": 0.5},
+      "body_angle_x": {"offset": 0.0, "peak":  2.25, "cycle": 15.5345, "weight": 0.5},
+      "breath":       {"offset": 0.5, "peak":  0.5,  "cycle":  3.2345, "weight": 0.5}
+    }
+  },
+
+  "lipsync": {
+    "_comment": "Rhubarb phoneme → mouth parameter mappings. open = MouthOpenY [0,1], form = MouthForm [-1,1].",
+    "shapes": {
+      "X": {"open": 0.0, "form":  0.0},
+      "A": {"open": 0.1, "form": -1.0},
+      "B": {"open": 1.0, "form":  0.0},
+      "C": {"open": 0.8, "form":  0.5},
+      "D": {"open": 0.3, "form":  0.0},
+      "E": {"open": 0.6, "form":  0.5},
+      "F": {"open": 0.2, "form": -0.5},
+      "G": {"open": 0.4, "form":  0.0},
+      "H": {"open": 0.3, "form":  0.3}
+    },
+    "_comment_smoothing": "Blend weights written to mouth params each frame. Higher = more responsive, lower = smoother.",
+    "smoothing": {
+      "open": 0.8,
+      "form": 0.8
+    }
+  },
+
+  "animation": {
+    "_comment_entry": "breath_guard_entry_fade_duration: seconds to ramp breath suppression from 0→1 when a reaction starts. Fixes the one-frame head snap on reaction entry (issue #5).",
+    "breath_guard_entry_fade_duration": 0.15,
+    "_comment_exit":  "breath_guard_exit_fade_duration: seconds to ramp breath suppression from 1→0 after reaction ends.",
+    "breath_guard_exit_fade_duration":  0.5,
+    "_comment_prio":  "motion_priority_threshold: motion priority level that activates the breath guard (and is assigned to played reactions).",
+    "motion_priority_threshold": 2
+  },
+
+  "normalisation": {
+    "_comment": "Out-of-range parameter correction. minimum_duration prevents instant snaps for tiny violations. auto_rate_multiplier scales max_breath_speed when normalise_rate=0. fallback_rate used when breath speed unavailable.",
+    "minimum_duration":    0.1,
+    "auto_rate_multiplier": 2.0,
+    "fallback_rate":        15.0
+  },
+
+  "render": {
+    "_comment": "scene_tail_duration: idle seconds appended after the last cue / lipsync event so the avatar settles.",
+    "scene_tail_duration": 1.0
+  },
+
+  "ffmpeg": {
+    "_comment": "Codec quality settings per output format. av1/prores for transparent output; h264 for opaque.",
+    "av1":    {"crf": 30, "bitrate": 0},
+    "prores": {"profile": 4},
+    "h264":   {"crf": 23, "preset": "medium"},
+    "aac":    {"bitrate": "128k"}
+  }
+}
