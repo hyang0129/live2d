@@ -14,10 +14,12 @@
 #endif
 
 // Drives the deterministic frame loop and wires all rendering components together.
+// scene_tail_duration: idle seconds appended after the last cue/lipsync event.
 // Returns false on any render or encode failure.
 bool RunRenderLoop(const SceneManifest& manifest,
                    Live2DModel&         model,
                    OffscreenRenderer&   offscreen,
                    FfmpegEncoder&       encoder,
                    LipsyncSequencer&    lipsync,
-                   CueSequencer&        cues);
+                   CueSequencer&        cues,
+                   float                scene_tail_duration = 1.0f);

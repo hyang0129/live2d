@@ -7,6 +7,7 @@ target_sources(live2d-render PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/cli/manifest.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/cli/model_resolver.cpp
 
+  ${CMAKE_CURRENT_SOURCE_DIR}/render/renderer_config.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/render/lipsync_sequencer.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/render/cue_sequencer.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/render/live2d_model.cpp

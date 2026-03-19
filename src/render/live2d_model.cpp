@@ -178,12 +178,13 @@ void Live2DModel::SetupModel(ICubismModelSetting* setting)
         _breath = CubismBreath::Create();
         auto* idMgr = CubismFramework::GetIdManager();
 
+        const auto& bc = _cfg.breath;
         _breathBaseParams = {
-            {idMgr->GetId(ParamAngleX),     0.f,  7.2f, 6.5345f, 0.5f},
-            {idMgr->GetId(ParamAngleY),     0.f,  4.5f, 3.5345f, 0.5f},
-            {idMgr->GetId(ParamAngleZ),     0.f,  5.4f, 5.5345f, 0.5f},
-            {idMgr->GetId(ParamBodyAngleX), 0.f,  2.25f, 15.5345f, 0.5f},
-            {idMgr->GetId(ParamBreath),     0.5f, 0.5f, 3.2345f, 0.5f},
+            {idMgr->GetId(ParamAngleX),     bc.angle_x.offset,      bc.angle_x.peak,      bc.angle_x.cycle,      bc.angle_x.weight},
+            {idMgr->GetId(ParamAngleY),     bc.angle_y.offset,      bc.angle_y.peak,      bc.angle_y.cycle,      bc.angle_y.weight},
+            {idMgr->GetId(ParamAngleZ),     bc.angle_z.offset,      bc.angle_z.peak,      bc.angle_z.cycle,      bc.angle_z.weight},
+            {idMgr->GetId(ParamBodyAngleX), bc.body_angle_x.offset, bc.body_angle_x.peak, bc.body_angle_x.cycle, bc.body_angle_x.weight},
+            {idMgr->GetId(ParamBreath),     bc.breath_param.offset, bc.breath_param.peak, bc.breath_param.cycle, bc.breath_param.weight},
         };
 
         csmVector<CubismBreath::BreathParameterData> bp;
@@ -355,9 +356,11 @@ void Live2DModel::Update(float deltaTime, const MouthState& mouth, const CueStat
             // Prime the breath guard: UpdateMotion for the newly-queued motion
             // only runs next frame (GetCurrentPriority still 0 this frame).
             // Set flags now so the guard holds on this transition frame.
+            // Use the same entry-ramp logic (not a snap) for consistency with #5.
             if (!_suppressBreathGuard) {
-                _reactionFadeWeight = 1.0f;
-                _reactionWasActive  = true;
+                _reactionFadeWeight += deltaTime / _cfg.animation.breath_guard_entry_fade_duration;
+                if (_reactionFadeWeight > 1.0f) _reactionFadeWeight = 1.0f;
+                _reactionWasActive = true;
             }
         }
     }
@@ -374,7 +377,7 @@ void Live2DModel::Update(float deltaTime, const MouthState& mouth, const CueStat
     // (_reactionFadeWeight > 0).  The fade condition prevents gaze from snapping
     // the head to the cue position on the one frame between normalisation completing
     // and the motion registering priority ≥ 2.
-    if (_motionManager->GetCurrentPriority() < 2
+    if (_motionManager->GetCurrentPriority() < _cfg.animation.motion_priority_threshold
         && !_normalisationActive
         && _reactionFadeWeight <= 0.0f) {
         _model->SetParameterValue(_idParamEyeBallX, cue.gaze_x);
@@ -385,20 +388,23 @@ void Live2DModel::Update(float deltaTime, const MouthState& mouth, const CueStat
     }
 
     // Mouth from lipsync sequencer
-    _model->SetParameterValue(_idParamMouthOpenY, mouth.open, 0.8f);
-    _model->SetParameterValue(_idParamMouthForm,  mouth.form, 0.8f);
+    _model->SetParameterValue(_idParamMouthOpenY, mouth.open, _cfg.lipsync.smoothing_open);
+    _model->SetParameterValue(_idParamMouthForm,  mouth.form, _cfg.lipsync.smoothing_form);
 
-    // Breath guard: suppress / blend breath during and after reaction motions (priority >= 2).
-    // Skipped entirely if the current reaction has breath_guard: "none" in its registry entry.
+    // Breath guard: suppress / blend breath during and after reaction motions.
+    // Entry: _reactionFadeWeight ramps 0→1 over entry_fade_duration (fixes entry snap, #5).
+    // Exit:  _reactionFadeWeight ramps 1→0 over exit_fade_duration after reaction ends.
+    // Skipped entirely if the current reaction has breath_guard: "none".
     {
         const int currentPriority = _motionManager->GetCurrentPriority();
-        if (currentPriority >= 2 || _normalisationActive) {
+        if (currentPriority >= _cfg.animation.motion_priority_threshold || _normalisationActive) {
             if (!_suppressBreathGuard) {
-                _reactionFadeWeight = 1.0f;
-                _reactionWasActive  = true;
+                _reactionFadeWeight += deltaTime / _cfg.animation.breath_guard_entry_fade_duration;
+                if (_reactionFadeWeight > 1.0f) _reactionFadeWeight = 1.0f;
+                _reactionWasActive = true;
             }
         } else if (_reactionWasActive) {
-            _reactionFadeWeight -= deltaTime / 0.5f;
+            _reactionFadeWeight -= deltaTime / _cfg.animation.breath_guard_exit_fade_duration;
             if (_reactionFadeWeight <= 0.0f) {
                 _reactionFadeWeight = 0.0f;
                 _reactionWasActive  = false;
@@ -462,6 +468,11 @@ void Live2DModel::SetReactionEntries(const std::map<std::string, ReactionEntry>&
     _reactionEntries = entries;
 }
 
+void Live2DModel::SetConfig(const RendererConfig& cfg)
+{
+    _cfg = cfg;
+}
+
 void Live2DModel::SetBreathSpeed(float multiplier)
 {
     if (!_breath || multiplier <= 0.0f || _breathBaseParams.empty()) return;
@@ -480,7 +491,8 @@ void Live2DModel::PlayMotionGroup(const std::string& name)
             csmString motionName = Utils::CubismString::GetFormatedString("%s_0", group);
             auto* motion = static_cast<CubismMotion*>(_motions[motionName.GetRawString()]);
             if (motion) {
-                _motionManager->StartMotionPriority(motion, false, 2);
+                _motionManager->StartMotionPriority(motion, false,
+                    _cfg.animation.motion_priority_threshold);
                 return;
             }
         }
@@ -537,7 +549,9 @@ void Live2DModel::TriggerMotion(const std::string& name, float cue_time)
                     if (it != _breathMaxSpeed.end())
                         maxBreathSpeed = std::max(maxBreathSpeed, it->second);
                 }
-                rate = (maxBreathSpeed > 0.0f) ? 2.0f * maxBreathSpeed : 15.0f;
+                rate = (maxBreathSpeed > 0.0f)
+                    ? _cfg.normalisation.auto_rate_multiplier * maxBreathSpeed
+                    : _cfg.normalisation.fallback_rate;
             }
 
             // Estimate normalisation duration from worst-case violation
@@ -550,13 +564,13 @@ void Live2DModel::TriggerMotion(const std::string& name, float cue_time)
             // Guard against a zero rate (should not happen given auto-compute fallback,
             // but prevents UB if the path is ever reached with a bad registry value).
             if (rate <= 0.0f) {
-                Logger::Warn("[norm] rate <= 0 after compute — clamping to 15.0");
-                rate = 15.0f;
+                Logger::Warn("[norm] rate <= 0 after compute — clamping to fallback %.1f",
+                             _cfg.normalisation.fallback_rate);
+                rate = _cfg.normalisation.fallback_rate;
             }
 
-            // Enforce minimum duration of 0.1s so even tiny violations produce a
-            // perceptible (not snappy) normalisation movement.
-            constexpr float kMinNormDuration = 0.1f;
+            // Enforce minimum duration so even tiny violations produce a perceptible movement.
+            const float kMinNormDuration = _cfg.normalisation.minimum_duration;
             const float rawDuration = maxDist / rate;
             if (rawDuration < kMinNormDuration && maxDist > 0.0f)
                 rate = maxDist / kMinNormDuration;

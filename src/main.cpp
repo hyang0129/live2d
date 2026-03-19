@@ -26,6 +26,7 @@ namespace fs = std::filesystem;
 #include "cli/logger.h"
 #include "cli/manifest.h"
 #include "cli/model_resolver.h"
+#include "render/renderer_config.h"
 #include "render/lipsync_sequencer.h"
 #include "render/cue_sequencer.h"
 #include "render/live2d_model.h"
@@ -111,7 +112,10 @@ int main(int argc, char* argv[])
 
     Logger::Info("live2d-render starting — scene: \"%s\"", args.scene_path.c_str());
 
-    // ── 2. Load and validate manifest ─────────────────────────────────────────
+    // ── 2. Load renderer config (optional; missing file → all defaults) ────────
+    const RendererConfig rendererCfg = LoadRendererConfig("renderer_config.json");
+
+    // ── 3. Load and validate manifest ─────────────────────────────────────────
     SceneManifest manifest;
     if (!LoadManifest(args.scene_path, args.output_override, args.transparent_override, manifest))
         return EXIT_BAD_MANIFEST;
@@ -140,12 +144,12 @@ int main(int argc, char* argv[])
         manifest.output_path.c_str(),
         manifest.background.type == BackgroundType::Transparent ? "true" : "false");
 
-    // ── 3. Resolve model profile ──────────────────────────────────────────────
+    // ── 4. Resolve model profile ──────────────────────────────────────────────
     const ModelProfile profile = ResolveModel(manifest.model);
     if (!profile.valid())
         return EXIT_ASSET_ERROR;
 
-    // ── 4. Initialize graphics backend ───────────────────────────────────────
+    // ── 5. Initialize graphics backend ───────────────────────────────────────
 #ifdef _WIN32
     CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
 #endif
@@ -154,7 +158,7 @@ int main(int argc, char* argv[])
     if (!offscreen.Init(manifest.width, manifest.height))
         return EXIT_RENDER_ERROR;
 
-    // ── 5. Initialize Cubism framework ───────────────────────────────────────
+    // ── 6. Initialize Cubism framework ───────────────────────────────────────
     static Allocator allocator;
     CubismFramework::Option cubismOption;
     cubismOption.LogFunction          = CubismLogFunc;
@@ -171,8 +175,9 @@ int main(int argc, char* argv[])
     Rendering::CubismRenderer_D3D11::InitializeConstantSettings(1, offscreen.Device());
 #endif
 
-    // ── 6. Load Live2D model ──────────────────────────────────────────────────
+    // ── 7. Load Live2D model ──────────────────────────────────────────────────
     Live2DModel model;
+    model.SetConfig(rendererCfg);  // must be before Load() so breath params apply
 #ifdef _WIN32
     if (!model.Load(profile.path, offscreen.Device(), offscreen.Context())) {
 #else
@@ -185,8 +190,9 @@ int main(int argc, char* argv[])
     if (manifest.breath_speed != 1.0f)
         model.SetBreathSpeed(manifest.breath_speed);
 
-    // ── 7. Prepare sequencers ─────────────────────────────────────────────────
+    // ── 8. Prepare sequencers ─────────────────────────────────────────────────
     LipsyncSequencer lipsync;
+    lipsync.SetLipsyncConfig(rendererCfg.lipsync);
     lipsync.Load(manifest.lipsync);
 
     // Build alias → raw_id string map for CueSequencer (unchanged interface)
@@ -203,22 +209,24 @@ int main(int argc, char* argv[])
     CueSequencer cues;
     cues.Load(manifest.cues, profile.emotions, reactionAliases);
 
-    // ── 8. Open FFmpeg encoder ────────────────────────────────────────────────
+    // ── 9. Open FFmpeg encoder ────────────────────────────────────────────────
     const bool transparent = (manifest.background.type == BackgroundType::Transparent);
     FfmpegEncoder encoder;
     if (!encoder.Open(manifest.output_path,
                       manifest.width, manifest.height, manifest.fps,
                       transparent,
-                      manifest.audio_path))
+                      manifest.audio_path,
+                      rendererCfg.ffmpeg))
     {
         CubismFramework::Dispose();
         return EXIT_RENDER_ERROR;
     }
 
-    // ── 9. Run render loop ────────────────────────────────────────────────────
-    const bool render_ok = RunRenderLoop(manifest, model, offscreen, encoder, lipsync, cues);
+    // ── 10. Run render loop ───────────────────────────────────────────────────
+    const bool render_ok = RunRenderLoop(manifest, model, offscreen, encoder, lipsync, cues,
+                                         rendererCfg.render.scene_tail_duration);
 
-    // ── 10. Finalize encoder ──────────────────────────────────────────────────
+    // ── 11. Finalize encoder ──────────────────────────────────────────────────
     const bool encode_ok = encoder.Close();
 
     CubismFramework::Dispose();

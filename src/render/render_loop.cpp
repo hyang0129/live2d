@@ -19,7 +19,8 @@ bool RunRenderLoop(const SceneManifest& manifest,
                    OffscreenRenderer&   offscreen,
                    FfmpegEncoder&       encoder,
                    LipsyncSequencer&    lipsync,
-                   CueSequencer&        cues)
+                   CueSequencer&        cues,
+                   float                scene_tail_duration)
 {
     // Determine total frame count from the last cue/lipsync time + 1 second tail
     float scene_duration = 0.0f;
@@ -27,7 +28,7 @@ bool RunRenderLoop(const SceneManifest& manifest,
         scene_duration = std::max(scene_duration, c.time);
     for (const auto& kf : manifest.lipsync)
         scene_duration = std::max(scene_duration, kf.time);
-    scene_duration += 1.0f;  // 1-second tail
+    scene_duration += scene_tail_duration;
 
     const int   total_frames = static_cast<int>(scene_duration * manifest.fps);
     const float dt           = 1.0f / static_cast<float>(manifest.fps);
