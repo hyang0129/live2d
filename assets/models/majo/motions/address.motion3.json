@@ -16,7 +16,7 @@
 			"Target": "Parameter",
 			"Id": "ParamAngleY",
 			"FadeInTime": 0.3,
-			"FadeOutTime": 0.6,
+			"FadeOutTime": 0.0,
 			"Segments": [
 				0.0, 0.0,
 				0, 0.3, 6.0,

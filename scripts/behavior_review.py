@@ -69,7 +69,7 @@ REVIEW_CRITERIA: dict[str, str] = {
     "tap":          "PASS: jolt + damped oscillation settling smoothly. FAIL: snap",
     # ── Sable reactions ──────────────────────────────────────────────────────
     "lean_in":      "PASS: very slow 1.2s onset, deep −10° hold, smooth 1s return. No snap",
-    "consult":      "PASS: clear +14° tilt + eye drop, smooth return — fadeout guard. No snap, no wobble",
+    "consult":      "PASS: clear +14deg tilt + eye drop, smooth return — fade-to-idle exit. No snap, no wobble",
     "glance_down":  "PASS: eyes drop visibly (−0.6), 0.4s hold, smooth 0.8s return. No snap",
     "address":      "PASS: chin-up +6° rise, hold, smooth return. No snap. Ignores head yaw",
 }
@@ -111,6 +111,179 @@ def _build_drawtext_filter(behaviors: list, dur: float) -> str:
     return ",".join(parts)
 
 
+# ── animation-state overlay helpers (from consult_review.py pattern) ──────────
+
+STEP = 0.1   # countdown granularity (seconds)
+
+
+def _esc(s: str) -> str:
+    """Escape a string for FFmpeg drawtext text='...' value."""
+    return s.replace("\\", "\\\\").replace("'", "\\'").replace(":", "\\:")
+
+
+def _between(t0: float, t1: float) -> str:
+    """FFmpeg enable expression: active while t0 <= t <= t1."""
+    return f"between(t\\,{t0:.3f}\\,{t1:.3f})"
+
+
+def _dt(text: str, y_from_bottom: int, enable: str = "1",
+        color: str = "red", fontsize: int = 21) -> str:
+    """Single drawtext filter, anchored to bottom-left at y=h-{y_from_bottom}."""
+    return (
+        f"drawtext=text='{text}'"
+        f":enable='{enable}'"
+        f":fontsize={fontsize}:fontcolor={color}"
+        f":x=18:y=h-{y_from_bottom}"
+        f":box=1:boxcolor=black@0.78:boxborderw=6"
+    )
+
+
+def _seq(text_fn, phase_start: float, phase_end: float,
+         y_from_bottom: int, color: str = "red") -> list:
+    """
+    Generate static drawtext entries at STEP granularity for a phase.
+    text_fn(remaining_seconds) -> display string for this interval.
+    Avoids FFmpeg's eif 'f' format (not supported in FFmpeg 4.4).
+    """
+    entries = []
+    t = phase_start
+    while t < phase_end - 0.001:
+        t0  = round(t, 3)
+        t1  = round(min(t + STEP, phase_end), 3)
+        rem = max(0.0, phase_end - t)
+        entries.append(_dt(
+            _esc(text_fn(rem)),
+            y_from_bottom=y_from_bottom,
+            enable=_between(t0, t1),
+            color=color,
+        ))
+        t = round(t + STEP, 3)
+    return entries
+
+
+def _get_motion_dur(model_dir: Path, group_name: str, model3: dict) -> float:
+    """
+    Read the duration from the motion file for the given group name.
+    Returns None if the file cannot be found or read.
+    """
+    motions = model3.get("FileReferences", {}).get("Motions", {})
+    group_motions = motions.get(group_name, [])
+    if not group_motions:
+        return None
+    motion_file_rel = group_motions[0].get("File")
+    if not motion_file_rel:
+        return None
+    motion_path = model_dir / motion_file_rel
+    if not motion_path.exists():
+        return None
+    try:
+        with open(motion_path, encoding="utf-8") as fh:
+            motion_data = json.load(fh)
+        return motion_data.get("Meta", {}).get("Duration")
+    except Exception:
+        return None
+
+
+def _build_animation_state_overlays(behaviors: list, dur: float, model_dir: Path, registry_entry: dict) -> list:
+    """
+    Returns list of drawtext strings for bottom-left animation state display.
+
+    Per-segment overlay rules:
+
+    For emotion segments:
+      Line 1 (bottom-left): idle  [looping] — always, red
+      Line 2: [emotion_name]  (expression)  :  Xs remaining — red, countdown from dur to 0
+
+    For reaction segments:
+      Line 1: idle  [looping] — always, red
+      Line 2: [alias]  (playing)  :  Xs remaining — red, from segment start to segment_start + motion_dur
+      Line 3 (if fade_to_idle): fade-to-idle  :  Xs remaining — cyan, from motion end to motion end + fade_dur
+    """
+    LH = 43    # line height including padding (px)
+    Y0 = 175   # y-from-bottom for the bottommost left line
+
+    # Load model3.json to get motion file references
+    model3_path = model_dir / (model_dir.name + ".model3.json")
+    model3 = {}
+    if model3_path.exists():
+        try:
+            with open(model3_path, encoding="utf-8") as fh:
+                model3 = json.load(fh)
+        except Exception:
+            pass
+
+    # Build reactions lookup from registry entry
+    reactions_registry = registry_entry.get("reactions", {})
+
+    parts = []
+    for i, b in enumerate(behaviors):
+        seg_start = i * dur
+        seg_end   = seg_start + dur
+        cue_key   = b["cue_key"]
+        alias     = b["cue_value"]
+
+        # Line 1: idle [looping] — always present for this segment
+        parts.append(_dt(
+            "idle  [looping]",
+            y_from_bottom=Y0,
+            enable=_between(seg_start, seg_end),
+            color="red",
+        ))
+
+        if cue_key == "emotion":
+            # Line 2: emotion countdown from seg_start to seg_end
+            parts.extend(_seq(
+                lambda rem, a=alias: f"{a}  (expression)  :  {rem:.1f}s remaining",
+                seg_start, seg_end, Y0 + LH, color="red",
+            ))
+
+        elif cue_key == "reaction":
+            if alias == "idle":
+                # idle loops the whole segment — no Line 2 needed (just idle looping)
+                pass
+            else:
+                # Look up reaction in registry
+                reaction_val = reactions_registry.get(alias, {})
+                if isinstance(reaction_val, str):
+                    # simple string id
+                    reaction_val = {"id": reaction_val}
+
+                group_name   = reaction_val.get("id", alias)
+                has_fade     = reaction_val.get("fade_to_idle", False)
+                fade_dur_cfg = reaction_val.get("fade_to_idle_duration", 0)
+                fade_dur     = fade_dur_cfg if (fade_dur_cfg and fade_dur_cfg > 0) else 1.0
+
+                # Get motion duration
+                raw_motion_dur = _get_motion_dur(model_dir, group_name, model3)
+                if raw_motion_dur is None:
+                    # Can't read motion file — treat as filling the whole segment, no fade
+                    motion_dur = dur
+                    has_fade   = False
+                else:
+                    motion_dur = min(raw_motion_dur, dur)  # clamp to segment duration
+
+                motion_end = seg_start + motion_dur
+                fade_end   = motion_end + (fade_dur if has_fade else 0.0)
+
+                # Line 2: motion playing countdown
+                play_end = min(motion_end, seg_end)
+                if play_end > seg_start:
+                    parts.extend(_seq(
+                        lambda rem, a=alias: f"{a}  (playing)  :  {rem:.1f}s remaining",
+                        seg_start, play_end, Y0 + LH, color="red",
+                    ))
+
+                # Line 3: fade-to-idle countdown (cyan)
+                if has_fade and fade_end > motion_end and motion_end < seg_end:
+                    actual_fade_end = min(fade_end, seg_end)
+                    parts.extend(_seq(
+                        lambda rem: f"fade-to-idle  :  {rem:.1f}s remaining",
+                        motion_end, actual_fade_end, Y0 + LH * 2, color="cyan",
+                    ))
+
+    return parts
+
+
 def _tile_audio(src: Path, dest: Path, total_dur: float) -> None:
     r = subprocess.run(
         ["ffmpeg", "-y", "-stream_loop", "-1", "-i", str(src),
@@ -140,7 +313,7 @@ def _extract_id(value) -> str:
 # ── behavior extraction ───────────────────────────────────────────────────────
 
 def _behaviors_from_registry(model_id: str):
-    """Return (behaviors, draft_entry=None) from the registry."""
+    """Return (behaviors, registry_entry) from the registry."""
     with open(REGISTRY_PATH, encoding="utf-8") as fh:
         registry = json.load(fh)
 
@@ -166,7 +339,7 @@ def _behaviors_from_registry(model_id: str):
             "label":     f"{alias}  \u2192  {mid}  (reaction)",
         })
 
-    return behaviors, None
+    return behaviors, entry
 
 
 def _behaviors_from_model_path(model_path: Path):
@@ -253,6 +426,10 @@ def main() -> None:
         help="Seconds per behavior (default: 3 onboarding, 5 registry)",
     )
     parser.add_argument(
+        "--reactions-only", action="store_true",
+        help="Render only reactions (skip expressions)",
+    )
+    parser.add_argument(
         "--no-lipsync", action="store_true",
         help="Skip lip sync audio",
     )
@@ -265,6 +442,7 @@ def main() -> None:
     # ── collect behaviors ──────────────────────────────────────────────────
     onboarding     = args.model_path is not None
     draft_inserted = False
+    registry_entry = None   # set only in registry mode
 
     if onboarding:
         model_path             = (ROOT / args.model_path).resolve()
@@ -273,12 +451,19 @@ def main() -> None:
         dur                    = args.duration or 3.0
         out_stem               = model_path.stem
         mode_label             = "onboarding (pre-registration)"
+        model_dir              = model_path.parent
     else:
-        behaviors, _ = _behaviors_from_registry(args.model)
+        behaviors, registry_entry = _behaviors_from_registry(args.model)
         render_id    = args.model
         dur          = args.duration or 5.0
         out_stem     = args.model
         mode_label   = "registry"
+        # Resolve model_dir from registry entry path
+        model_path_rel = registry_entry.get("path", "")
+        model_dir      = (ROOT / model_path_rel).parent if model_path_rel else None
+
+    if args.reactions_only:
+        behaviors = [b for b in behaviors if b["cue_key"] == "reaction"]
 
     if not behaviors:
         print("ERROR: no behaviors found.", file=sys.stderr)
@@ -300,6 +485,9 @@ def main() -> None:
     raw_path      = out_dir / f"{out_stem}_review_raw.mp4"
     final_path    = Path(args.output) if args.output else out_dir / f"{out_stem}_review.mp4"
     manifest_path = out_dir / f"{out_stem}_review_manifest.json"
+
+    # Ensure output directory exists (for --output with subdirs)
+    final_path.parent.mkdir(parents=True, exist_ok=True)
 
     # ── lipsync / audio ────────────────────────────────────────────────────
     use_lipsync = (
@@ -399,14 +587,28 @@ def main() -> None:
         sys.exit(1)
 
     # ── burn labels ────────────────────────────────────────────────────────
-    vf = _build_drawtext_filter(behaviors, dur)
+    vf_parts = [_build_drawtext_filter(behaviors, dur)]
+
+    # Add bottom-left animation state overlays (registry mode only)
+    if registry_entry is not None and model_dir is not None:
+        anim_overlays = _build_animation_state_overlays(
+            behaviors, dur, model_dir, registry_entry
+        )
+        if anim_overlays:
+            vf_parts.extend(anim_overlays)
+
+    vf = ",".join(vf_parts)
+
+    # Write filter to a temp file to avoid ARG_MAX limits on long drawtext chains.
+    vf_script_path = out_dir / f"{out_stem}_review_vf.txt"
+    vf_script_path.write_text(vf, encoding="utf-8")
 
     print("Burning labels ...")
     result = subprocess.run(
         [
             "ffmpeg", "-y",
             "-i", str(raw_path),
-            "-vf", vf,
+            "-filter_script:v", str(vf_script_path),
             "-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p",
             *([ "-c:a", "copy"] if use_lipsync else ["-an"]),
             str(final_path),
@@ -419,6 +621,7 @@ def main() -> None:
 
     # ── cleanup intermediates ──────────────────────────────────────────────
     raw_path.unlink(missing_ok=True)
+    vf_script_path.unlink(missing_ok=True)
     if tiled_audio_path:
         tiled_audio_path.unlink(missing_ok=True)
 

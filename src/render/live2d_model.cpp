@@ -367,19 +367,60 @@ void Live2DModel::Update(float deltaTime, const MouthState& mouth, const CueStat
 
     _model->SaveParameters();  // captures normalised position; motion blends FROM here
 
+    // ── Fade-to-idle: step 1 — detect priority falling edge, flush residual, suppress gaze ──
+    // MUST run BEFORE _expressionManager->UpdateMotion so that SaveParameters() here
+    // captures pre-expression values only. If this ran after expressions, the expression
+    // Multiply blends (e.g. contemptuous × 0.9 on EyeOpen) would be baked into the saved
+    // base once per reaction end, compounding across reactions and progressively closing
+    // the model's eyes over a multi-reaction sequence.
+    //
+    // The snapshot is intentionally NOT taken here. Taking it pre-breath produces a
+    // snap at the transition: the previous frame's visible output included breath
+    // (which runs freely for breath_guard:none reactions), but the pre-breath snapshot
+    // would be 0, creating a discontinuity. Instead we set _fadeToIdleArming = true,
+    // which suppresses the gaze block below, and defer the snapshot to after breath and
+    // physics have run (step 2, below the lerp block).
+    {
+        const int curPri = _motionManager->GetCurrentPriority();
+        if (_prevPriority >= _cfg.animation.motion_priority_threshold
+            && curPri < _cfg.animation.motion_priority_threshold
+            && _fadeToIdleEnabled
+            && !_fadeToIdleActive
+            && !_fadeToIdleArming) {
+            _fadeToIdleArming   = true;
+            _fadeToIdleProgress = 0.0f;
+            _fadeToIdleDuration = (_fadeToIdleDurationOverride > 0.0f)
+                                ? _fadeToIdleDurationOverride
+                                : _cfg.animation.fade_to_idle_duration;
+
+            // Flush the motion residual from _savedParameters so that during the fade
+            // each frame's LoadParameters restores a clean neutral base and breath adds
+            // on top cleanly. Without this, residual + breath would diverge from the
+            // post-fade gaze_neutral + breath target, producing a snap at handoff.
+            _model->SetParameterValue(_idParamAngleX,     cue.head_yaw);
+            _model->SetParameterValue(_idParamAngleY,     cue.head_pitch);
+            _model->SetParameterValue(_idParamAngleZ,     cue.head_roll);
+            _model->SetParameterValue(_idParamBodyAngleX, 0.0f);
+            _model->SetParameterValue(_idParamEyeBallX,   cue.gaze_x);
+            _model->SetParameterValue(_idParamEyeBallY,   cue.gaze_y);
+            _model->SaveParameters();
+        }
+    }
+
     // Expressions
     if (_expressionManager)
         _expressionManager->UpdateMotion(_model, deltaTime);
 
     // Gaze / head from cue state.
     // Suppressed while: a reaction motion is playing (priority ≥ 2), normalisation
-    // is active, OR the post-reaction breath-guard fade is still running
-    // (_reactionFadeWeight > 0).  The fade condition prevents gaze from snapping
-    // the head to the cue position on the one frame between normalisation completing
-    // and the motion registering priority ≥ 2.
+    // is active, the post-reaction breath-guard fade is still running
+    // (_reactionFadeWeight > 0), OR fade-to-idle is active (prevents gaze from
+    // snapping head params to cue defaults while the blend is in progress).
     if (_motionManager->GetCurrentPriority() < _cfg.animation.motion_priority_threshold
         && !_normalisationActive
-        && _reactionFadeWeight <= 0.0f) {
+        && _reactionFadeWeight <= 0.0f
+        && !_fadeToIdleActive
+        && !_fadeToIdleArming) {
         _model->SetParameterValue(_idParamEyeBallX, cue.gaze_x);
         _model->SetParameterValue(_idParamEyeBallY, cue.gaze_y);
         _model->SetParameterValue(_idParamAngleX,   cue.head_yaw);
@@ -393,77 +434,35 @@ void Live2DModel::Update(float deltaTime, const MouthState& mouth, const CueStat
 
     // Breath guard: suppress / blend breath during and after reaction motions.
     //
-    //   "none"    — guard fully skipped; breath runs freely (no phase accumulation).
-    //   "lerp"    — breath suppressed during motion; fixed 0.5s exit blend after FadeOut completes.
-    //   "fadeout" — breath suppressed during motion hold; exit blend starts when Cubism begins its
-    //               FadeOut (IsTriggeredFadeOut() == true) and runs for 2× FadeOutSeconds.  This
-    //               means _reactionFadeWeight reaches 0.5 when FadeOut completes (priority drops),
-    //               then continues to decay to 0 over the second half in the post-priority branch.
-    //               The overshoot beyond FadeOut is intentional: it prevents the snap that would
-    //               occur if the guard finished exactly when the motion ended (GH #15).
+    //   "none"  — guard fully skipped; breath runs freely.
+    //   "lerp"  — breath suppressed during motion; fixed exit blend after motion ends.
     {
         const int currentPriority = _motionManager->GetCurrentPriority();
         if (currentPriority >= _cfg.animation.motion_priority_threshold || _normalisationActive) {
             if (_reactionGuardMode != BreathGuardMode::None) {
-                if (_reactionGuardMode == BreathGuardMode::FadeOut && _reactionWasActive
-                    && !_fadeOutGuardActive) {
-                    // Scan for the active queue entry and check if Cubism has started FadeOut.
-                    // This branch fires while priority is still ≥ threshold (during the FadeOut
-                    // window), which is exactly when we need to begin the exit ramp.
-                    auto* entries = _motionManager->GetCubismMotionQueueEntries();
-                    for (int i = 0; i < entries->GetSize(); ++i) {
-                        Csm::CubismMotionQueueEntry* e = (*entries)[i];
-                        if (e && e->IsAvailable() && !e->IsFinished()
-                            && e->IsTriggeredFadeOut()) {
-                            // 2× FadeOutSeconds: guard reaches 0.5 when Cubism FadeOut ends,
-                            // then continues to 0 in the post-priority-drop branch below.
-                            _fadeOutGuardDuration = 2.0f * e->GetFadeOutSeconds();
-                            if (_fadeOutGuardDuration <= 0.0f)
-                                _fadeOutGuardDuration = _cfg.animation.breath_guard_exit_fade_duration;
-                            _fadeOutGuardElapsed = 0.0f;
-                            _fadeOutGuardActive  = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (_fadeOutGuardActive) {
-                    // Exit ramp: decrement while priority is still high (during FadeOut window).
-                    _fadeOutGuardElapsed += deltaTime;
-                    _reactionFadeWeight = 1.0f - (_fadeOutGuardElapsed / _fadeOutGuardDuration);
-                    if (_reactionFadeWeight <= 0.0f) {
-                        _reactionFadeWeight   = 0.0f;
-                        _fadeOutGuardActive   = false;
-                        // Keep _reactionWasActive = true so the else-if below snaps to 0 cleanly
-                        // on the frame priority finally drops.
-                    }
-                } else {
-                    // Entry phase: ramp _reactionFadeWeight 0→1.
-                    _reactionFadeWeight += deltaTime / _cfg.animation.breath_guard_entry_fade_duration;
-                    if (_reactionFadeWeight > 1.0f) _reactionFadeWeight = 1.0f;
-                }
+                // Entry phase: ramp _reactionFadeWeight 0→1.
+                _reactionFadeWeight += deltaTime / _cfg.animation.breath_guard_entry_fade_duration;
+                if (_reactionFadeWeight > 1.0f) _reactionFadeWeight = 1.0f;
                 _reactionWasActive = true;
             }
         } else if (_reactionWasActive) {
-            // Priority dropped (Cubism FadeOut complete).
-            if (_reactionGuardMode == BreathGuardMode::FadeOut && _fadeOutGuardActive) {
-                // FadeOut guard second half: continue the existing ramp beyond the FadeOut window.
-                // _reactionFadeWeight is ~0.5 here (halfway through the 2× duration).
-                // Continue at the same rate until it reaches 0.
-                _fadeOutGuardElapsed += deltaTime;
-                _reactionFadeWeight = 1.0f - (_fadeOutGuardElapsed / _fadeOutGuardDuration);
-                if (_reactionFadeWeight <= 0.0f) _reactionFadeWeight = 0.0f;
-            } else if (_reactionGuardMode == BreathGuardMode::FadeOut) {
-                // FadeOut guard: priority dropped before guard armed (edge case — snap to clean).
-                _reactionFadeWeight = 0.0f;
+            if (_fadeToIdleActive || _fadeToIdleArming) {
+                // Drive breath suppression in lockstep with the fade-to-idle ramp.
+                // At _fadeToIdleProgress=0 (motion just ended, including the arming
+                // frame before _fadeToIdleActive is set) breath stays fully
+                // suppressed; at progress=1 (fade complete) breath has full weight.
+                // Checking _fadeToIdleArming here prevents one frame of normal exit
+                // ramp running on the arming frame (before _fadeToIdleActive is set
+                // at the end of Update via the step-2 snapshot block).
+                // This guarantees breath re-introduction is bounded by the same ramp
+                // as the parameter lerp, eliminating the exit snap.
+                _reactionFadeWeight = 1.0f - _fadeToIdleProgress;
             } else {
-                // Lerp guard: fixed post-motion exit blend.
+                // Priority dropped, no fade-to-idle — normal lerp guard exit blend.
                 _reactionFadeWeight -= deltaTime / _cfg.animation.breath_guard_exit_fade_duration;
                 if (_reactionFadeWeight <= 0.0f) _reactionFadeWeight = 0.0f;
-            }
-            if (_reactionFadeWeight <= 0.0f) {
-                _reactionWasActive  = false;
-                _fadeOutGuardActive = false;
+                if (_reactionFadeWeight <= 0.0f)
+                    _reactionWasActive = false;
             }
         }
 
@@ -492,6 +491,77 @@ void Live2DModel::Update(float deltaTime, const MouthState& mouth, const CueStat
     }
     if (_physics) _physics->Evaluate(_model, deltaTime);
     if (_pose)    _pose->UpdateParameters(_model, deltaTime);
+
+    // ── Fade-to-idle: step 2 — take snapshot after breath and physics ──────────
+    // The snapshot is taken here (post-breath, post-physics) so it matches the
+    // true last visible frame, eliminating the snap at the motion→fade_to_idle
+    // entry that occurred when the snapshot was taken pre-breath.
+    if (_fadeToIdleArming) {
+        _fadeToIdleSnap.angleX     = _model->GetParameterValue(_idParamAngleX);
+        _fadeToIdleSnap.angleY     = _model->GetParameterValue(_idParamAngleY);
+        _fadeToIdleSnap.angleZ     = _model->GetParameterValue(_idParamAngleZ);
+        _fadeToIdleSnap.bodyAngleX = _model->GetParameterValue(_idParamBodyAngleX);
+        _fadeToIdleSnap.eyeBallX   = _model->GetParameterValue(_idParamEyeBallX);
+        _fadeToIdleSnap.eyeBallY   = _model->GetParameterValue(_idParamEyeBallY);
+        _fadeToIdleArming = false;
+        _fadeToIdleActive = true;
+        Logger::Debug("[fade_to_idle] armed: duration=%.2fs, snap AngleX=%.3f AngleY=%.3f AngleZ=%.2f — post-breath snapshot",
+                      _fadeToIdleDuration, _fadeToIdleSnap.angleX, _fadeToIdleSnap.angleY, _fadeToIdleSnap.angleZ);
+    }
+
+    // ── Fade-to-idle lerp ─────────────────────────────────────────────────────
+    // Armed above (after breath+physics) on the priority falling edge.
+    // Runs AFTER physics/pose so it overrides the final parameter values.
+    // Breath runs freely while active (lerp guard exit is suspended above).
+    {
+        const int curPri = _motionManager->GetCurrentPriority();
+
+        if (_fadeToIdleActive) {
+            if (curPri >= _cfg.animation.motion_priority_threshold) {
+                // New reaction started — cancel fade, restore guard state.
+                _fadeToIdleActive  = false;
+                _reactionFadeWeight = 0.0f;
+                _reactionWasActive  = false;
+                Logger::Debug("[fade_to_idle] cancelled: new reaction started");
+            } else {
+                _fadeToIdleProgress += deltaTime / _fadeToIdleDuration;
+                if (_fadeToIdleProgress >= 1.0f) {
+                    _fadeToIdleActive   = false;
+                    // Reset breath guard state so it doesn't linger after the blend.
+                    _reactionFadeWeight = 0.0f;
+                    _reactionWasActive  = false;
+                    Logger::Debug("[fade_to_idle] complete — AngleX at handoff=%.3f",
+                                  _model->GetParameterValue(_idParamAngleX));
+                } else {
+                    const float t = _fadeToIdleProgress;
+                    auto lerp = [](float a, float b, float t) { return a + (b - a) * t; };
+
+                    const float preAngleX  = _model->GetParameterValue(_idParamAngleX);
+                    const float postAngleX = lerp(_fadeToIdleSnap.angleX, preAngleX, t);
+
+                    Logger::Debug("[fade_to_idle] progress=%.4f breathWeight=%.4f"
+                                  " AngleX: snap=%.3f live=%.3f → lerped=%.3f",
+                                  t, _reactionFadeWeight,
+                                  _fadeToIdleSnap.angleX, preAngleX, postAngleX);
+
+                    // t=0 → snapshot (end of reaction), t=1 → current model output (idle+breath)
+                    _model->SetParameterValue(_idParamAngleX,     postAngleX);
+                    _model->SetParameterValue(_idParamAngleY,
+                        lerp(_fadeToIdleSnap.angleY,     _model->GetParameterValue(_idParamAngleY),     t));
+                    _model->SetParameterValue(_idParamAngleZ,
+                        lerp(_fadeToIdleSnap.angleZ,     _model->GetParameterValue(_idParamAngleZ),     t));
+                    _model->SetParameterValue(_idParamBodyAngleX,
+                        lerp(_fadeToIdleSnap.bodyAngleX, _model->GetParameterValue(_idParamBodyAngleX), t));
+                    _model->SetParameterValue(_idParamEyeBallX,
+                        lerp(_fadeToIdleSnap.eyeBallX,   _model->GetParameterValue(_idParamEyeBallX),   t));
+                    _model->SetParameterValue(_idParamEyeBallY,
+                        lerp(_fadeToIdleSnap.eyeBallY,   _model->GetParameterValue(_idParamEyeBallY),   t));
+                }
+            }
+        }
+
+        _prevPriority = curPri;
+    }
 
     _model->Update();
 }
@@ -579,17 +649,36 @@ std::vector<Live2DModel::NormParam> Live2DModel::BuildNormParams(
 
 void Live2DModel::TriggerMotion(const std::string& name, float cue_time)
 {
-    // Resolve breath guard preference before any early returns.
+    // Resolve breath guard and fade-to-idle preferences before any early returns.
     {
         auto bit = _reactionEntries.find(name);
-        _reactionGuardMode = (bit != _reactionEntries.end())
-                             ? bit->second.breath_guard
-                             : BreathGuardMode::Lerp;
+        if (bit != _reactionEntries.end()) {
+            _reactionGuardMode        = bit->second.breath_guard;
+            _fadeToIdleEnabled        = bit->second.fade_to_idle;
+            _fadeToIdleDurationOverride = bit->second.fade_to_idle_duration;  // 0 = use config default
+        } else {
+            _reactionGuardMode          = BreathGuardMode::Lerp;
+            _fadeToIdleEnabled          = false;
+            _fadeToIdleDurationOverride = 0.0f;
+        }
     }
-    // Reset FadeOut-mode guard state for the new motion.
-    _fadeOutGuardActive   = false;
-    _fadeOutGuardElapsed  = 0.0f;
-    _fadeOutGuardDuration = 0.0f;
+    // Cancel any in-progress fade-to-idle (including arming) for the new motion.
+    // Clearing _fadeToIdleArming is critical: if a reaction fires on the same frame
+    // the arming block fires (or while it is pending), leaving _fadeToIdleArming true
+    // would cause the step-2 snapshot block to activate a fade for the incoming
+    // reaction on that same frame, and would suppress gaze for the entire new motion.
+    _fadeToIdleActive  = false;
+    _fadeToIdleArming  = false;
+    _fadeToIdleProgress = 0.0f;
+
+    // If the new reaction uses BreathGuardMode::None, clear any residual breath
+    // suppression weight left over from a previous Lerp-mode reaction's exit ramp.
+    // Without this, a None reaction following a Lerp reaction inherits the decaying
+    // weight and partially suppresses breath even though the guard is disabled.
+    if (_reactionGuardMode == BreathGuardMode::None) {
+        _reactionFadeWeight = 0.0f;
+        _reactionWasActive  = false;
+    }
 
     auto it = _reactionEntries.find(name);
     if (it != _reactionEntries.end() && it->second.entry_dependent

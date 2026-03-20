@@ -15,9 +15,8 @@ enum class OutOfRangeMode {
 };
 
 enum class BreathGuardMode {
-    Lerp,    // default: fixed 0.5s exit blend after FadeOut completes
-    None,    // no guard — breath runs freely through and after the reaction
-    FadeOut, // exit blend synchronized to motion's own FadeOut window (starts when Cubism begins fading)
+    Lerp,           // default: breath suppressed during motion; fixed exit blend after motion ends
+    None,           // no guard — breath runs freely through and after the reaction
 };
 
 struct ReactionEntry {
@@ -27,6 +26,8 @@ struct ReactionEntry {
     float normalise_rate = 0.0f;                   // units/s; 0 = auto (2× breath max speed)
     OutOfRangeMode out_of_range_mode = OutOfRangeMode::Implicit;
     BreathGuardMode breath_guard = BreathGuardMode::Lerp;
+    bool  fade_to_idle = false;                     // enable post-motion fade-to-idle transition
+    float fade_to_idle_duration = 0.0f;            // seconds; 0 = use global RendererConfig default
 };
 
 struct ModelProfile {

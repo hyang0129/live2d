@@ -110,7 +110,7 @@
 				{
 					"File": "motions/consult.motion3.json",
 					"FadeInTime": 0.15,
-					"FadeOutTime": 1.0
+					"FadeOutTime": 0.0
 				}
 			],
 			"GlanceDown": [

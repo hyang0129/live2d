@@ -16,7 +16,7 @@
 			"Target": "Parameter",
 			"Id": "ParamEyeBallY",
 			"FadeInTime": 0.1,
-			"FadeOutTime": 0.7,
+			"FadeOutTime": 0.0,
 			"Segments": [
 				0.0, 0.0,
 				0, 0.2, -0.6,

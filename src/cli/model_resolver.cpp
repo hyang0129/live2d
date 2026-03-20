@@ -49,10 +49,11 @@ static ModelProfile ParseEntry(const json& entry)
                 }
                 {
                     const std::string bg = raw.value("breath_guard", std::string("lerp"));
-                    if      (bg == "none")    re.breath_guard = BreathGuardMode::None;
-                    else if (bg == "fadeout") re.breath_guard = BreathGuardMode::FadeOut;
-                    else                      re.breath_guard = BreathGuardMode::Lerp;
+                    if (bg == "none") re.breath_guard = BreathGuardMode::None;
+                    else              re.breath_guard = BreathGuardMode::Lerp;
                 }
+                re.fade_to_idle          = raw.value("fade_to_idle", false);
+                re.fade_to_idle_duration = raw.value("fade_to_idle_duration", 0.0f);
             }
             p.reactions[alias] = re;
         }

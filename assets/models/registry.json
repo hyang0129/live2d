@@ -158,16 +158,25 @@
   {
     "id": "majo_nod_nocheck",
     "path": "assets/models/majo/majo.model3.json",
-    "note": "Review entry — identical to majo but nod runs with out_of_range_mode:none. Used by entry_validation_review to show uncorrected behaviour.",
+    "note": "Review entry \u2014 identical to majo but nod runs with out_of_range_mode:none. Used by entry_validation_review to show uncorrected behaviour.",
     "emotions": {
-      "neutral": { "id": "neutral" }
+      "neutral": {
+        "id": "neutral"
+      }
     },
     "reactions": {
-      "idle": { "id": "Idle" },
+      "idle": {
+        "id": "Idle"
+      },
       "deep_nod": {
         "id": "DeepNod",
         "entry": "dependent",
-        "valid_entry": { "ParamAngleX": { "min": -5, "max": 5 } },
+        "valid_entry": {
+          "ParamAngleX": {
+            "min": -5,
+            "max": 5
+          }
+        },
         "out_of_range_mode": "none"
       }
     }
@@ -210,77 +219,101 @@
       },
       "wry": {
         "id": "wry",
-        "note": "Dry wit register — mouth curve 0.75, brow raise 0.2, eyes 90% open. Sable's primary expression; use for sardonic commentary, knowing asides, and the 'I told you so' beat."
+        "note": "Dry wit register \u2014 mouth curve 0.75, brow raise 0.2, eyes 90% open. Sable's primary expression; use for sardonic commentary, knowing asides, and the 'I told you so' beat."
       },
       "grave": {
         "id": "grave",
-        "note": "Solemn authority — fully open eyes (holds gaze), brow −0.15, clear frown (−0.75). Distinct from sad: no grief, no softening. Use for tragic facts, real casualty counts, endings that didn't go well."
+        "note": "Solemn authority \u2014 fully open eyes (holds gaze), brow \u22120.15, clear frown (\u22120.75). Distinct from sad: no grief, no softening. Use for tragic facts, real casualty counts, endings that didn't go well."
       },
       "hushed": {
         "id": "hushed",
-        "note": "Conspiratorial register — eyes 78% open (noticeably hooded), neutral mouth (0.0). The 'what I'm about to tell you didn't make the textbooks' face. Use for hushed and conspiratorial tone beats."
+        "note": "Conspiratorial register \u2014 eyes 78% open (noticeably hooded), neutral mouth (0.0). The 'what I'm about to tell you didn't make the textbooks' face. Use for hushed and conspiratorial tone beats."
       },
       "contemptuous": {
         "id": "contemptuous",
-        "note": "Mildly superior, affectionate contempt — eyes 90%, brow slightly raised (+0.1) with subtle furrow (BrowLForm −0.4), mouth 0.45. Use sparingly for myth-correction and 'the historians were not there' beats."
+        "note": "Mildly superior, affectionate contempt \u2014 eyes 90%, brow slightly raised (+0.1) with subtle furrow (BrowLForm \u22120.4), mouth 0.45. Use sparingly for myth-correction and 'the historians were not there' beats."
       }
     },
     "reactions": {
       "idle": {
         "id": "Idle",
-        "note": "Default idle loop."
+        "note": "Default idle loop. fade_to_idle: disabled (idle is the target; no self-transition)."
       },
       "nod_review": {
         "id": "NodReview",
-        "note": "Review hold \u2014 3.5s head-down for breath-snap comparison."
+        "note": "Review hold \u2014 3.5s head-down for breath-snap comparison. fade_to_idle: 1.0s.",
+        "fade_to_idle": true,
+        "fade_to_idle_duration": 1.0
       },
       "nod": {
         "id": "Nod",
-        "note": "Standard discourse nod — up-then-down head dip, 50% amplitude (peak −5°). Entry-independent from breath cycle (valid ±8°); no breath guard. Use this for most acknowledgement beats.",
+        "note": "Standard discourse nod \u2014 up-then-down head dip, 50% amplitude (peak \u22125\u00b0). Entry-independent from breath cycle (valid \u00b18\u00b0); no breath guard. Use this for most acknowledgement beats. fade_to_idle: 0.5s.",
         "entry": "dependent",
         "valid_entry": {
-          "ParamAngleX": { "min": -8, "max": 8 }
+          "ParamAngleX": {
+            "min": -8,
+            "max": 8
+          }
         },
         "out_of_range_mode": "implicit",
-        "breath_guard": "none"
+        "breath_guard": "none",
+        "fade_to_idle": true,
+        "fade_to_idle_duration": 1.0
       },
       "deep_nod": {
         "id": "DeepNod",
-        "note": "Full-amplitude discourse nod (peak −10°). Entry-dependent: assumes head near yaw center (valid ±5°); lerp breath guard active. Use for emphatic acknowledgement.",
+        "note": "Full-amplitude discourse nod (peak \u221210\u00b0). Entry-dependent: assumes head near yaw center (valid \u00b15\u00b0); lerp breath guard active. Use for emphatic acknowledgement. fade_to_idle: 0.7s.",
         "entry": "dependent",
         "valid_entry": {
-          "ParamAngleX": { "min": -5, "max": 5 }
+          "ParamAngleX": {
+            "min": -5,
+            "max": 5
+          }
         },
-        "out_of_range_mode": "implicit"
+        "out_of_range_mode": "implicit",
+        "fade_to_idle": true,
+        "fade_to_idle_duration": 1.0
       },
       "look_away": {
         "id": "LookAway",
-        "note": "Thinking/recalling gaze shift — eyes move up-right, head follows with 150ms lag. Returns to neutral."
+        "note": "Thinking/recalling gaze shift \u2014 eyes move up-right, head follows with 150ms lag. Returns to neutral. fade_to_idle: 1.0s.",
+        "fade_to_idle": true,
+        "fade_to_idle_duration": 1.0
       },
       "tap": {
         "id": "Tap",
-        "note": "Startled tap reaction — damped oscillation simulating lateral impact and recovery.",
-        "breath_guard": "none"
+        "note": "Startled tap reaction \u2014 damped oscillation simulating lateral impact and recovery. fade_to_idle: 0.5s.",
+        "breath_guard": "none",
+        "fade_to_idle": true,
+        "fade_to_idle_duration": 1.0
       },
       "lean_in": {
         "id": "LeanIn",
-        "note": "Key-revelation cue — slow AngleY dip to −10°, 1.0s hold, 3.2s total. No breath guard (amplitude above ±8° breath noise floor). Pair with voice drop and pacing slow-down. Sable signature: key_revelation.",
-        "breath_guard": "none"
+        "note": "Key-revelation cue \u2014 slow AngleY dip to \u221210\u00b0, 1.0s hold, 3.2s total. No breath guard (amplitude above \u00b18\u00b0 breath noise floor). fade_to_idle smooths exit snap. Pair with voice drop and pacing slow-down. Sable signature: key_revelation.",
+        "breath_guard": "none",
+        "fade_to_idle": true,
+        "fade_to_idle_duration": 1.0
       },
       "consult": {
         "id": "Consult",
-        "note": "Chapter-open cue — AngleZ tilt +14° + EyeBallY −0.4, 0.8s hold, 2.5s total. FadeOut breath guard: exit ramp synchronized to 1.0s FadeOut window — breath fades in concurrently with curve return, reaching 0 suppression exactly when FadeOut completes. Sable signature: chapter_open / 'let me find the file'.",
-        "breath_guard": "fadeout"
+        "note": "Chapter-open cue \u2014 AngleZ tilt +14\u00b0 + EyeBallY \u22120.4, 0.8s hold, 2.5s total. fade_to_idle handles exit: 0.7s blend from end-of-reaction snapshot toward live idle+breath. Sable signature: chapter_open / 'let me find the file'.",
+        "breath_guard": "none",
+        "fade_to_idle": true,
+        "fade_to_idle_duration": 1.0
       },
       "glance_down": {
         "id": "GlanceDown",
-        "note": "Historical-gap beat — EyeBallY −0.6 only, 0.4s hold, 1.4s total. No breath guard (EyeBallY not a breath param; AngleY removed as ±8° breath overwhelms −4° signal). Mock-sheepish punctuation. Sable signature: historical_gap.",
-        "breath_guard": "none"
+        "note": "Historical-gap beat \u2014 EyeBallY \u22120.6 only, 0.4s hold, 1.4s total. No breath guard (EyeBallY not a breath param; AngleY removed as \u00b18\u00b0 breath overwhelms \u22124\u00b0 signal). Mock-sheepish punctuation. Sable signature: historical_gap. fade_to_idle: 0.5s.",
+        "breath_guard": "none",
+        "fade_to_idle": true,
+        "fade_to_idle_duration": 1.0
       },
       "address": {
         "id": "Address",
-        "note": "Correction-of-historians cue — AngleY +6° chin-up, 1.0s total. No breath guard (amplitude above ±8° breath noise floor; AngleX removed as ±15° breath overwhelms centering). FadeIn 0.3s handles the turn-to-face from any off-axis position.",
-        "breath_guard": "none"
+        "note": "Correction-of-historians cue \u2014 AngleY +6\u00b0 chin-up, 1.0s total. No breath guard (amplitude above \u00b18\u00b0 breath noise floor; AngleX removed as \u00b115\u00b0 breath overwhelms centering). FadeIn 0.3s handles the turn-to-face from any off-axis position. fade_to_idle: 0.7s.",
+        "breath_guard": "none",
+        "fade_to_idle": true,
+        "fade_to_idle_duration": 1.0
       }
     }
   }

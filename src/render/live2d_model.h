@@ -119,10 +119,17 @@ private:
     bool  _reactionWasActive     = false;
     BreathGuardMode _reactionGuardMode = BreathGuardMode::Lerp; // set from registry at TriggerMotion time
 
-    // FadeOut-mode guard state
-    bool  _fadeOutGuardActive   = false;  // true while exit ramp is running during FadeOut window
-    float _fadeOutGuardDuration = 0.0f;  // motion's FadeOutSeconds, cached at trigger
-    float _fadeOutGuardElapsed  = 0.0f;  // time since exit ramp armed
+    // Fade-to-idle post-motion transition state
+    bool  _fadeToIdleActive   = false;
+    bool  _fadeToIdleArming   = false;  // true on the priority-drop frame, before snapshot is taken
+    float _fadeToIdleProgress = 0.0f;   // 0.0 → 1.0
+    float _fadeToIdleDuration = 0.7f;   // seconds; overridden from RendererConfig
+    bool  _fadeToIdleEnabled          = false;  // set from registry at TriggerMotion time
+    float _fadeToIdleDurationOverride = 0.0f;   // per-reaction override; 0 = use config default
+    int   _prevPriority       = 0;      // previous frame's motion priority (for edge detection)
+    struct FadeToIdleSnapshot {
+        float angleX, angleY, angleZ, bodyAngleX, eyeBallX, eyeBallY;
+    } _fadeToIdleSnap = {};
 
     bool _normalisationActive = false;
     std::string _normalisationPendingMotion;

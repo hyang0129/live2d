@@ -76,6 +76,8 @@ RendererConfig LoadRendererConfig(const std::string& path)
             a.value("breath_guard_exit_fade_duration",  cfg.animation.breath_guard_exit_fade_duration);
         cfg.animation.motion_priority_threshold =
             a.value("motion_priority_threshold", cfg.animation.motion_priority_threshold);
+        cfg.animation.fade_to_idle_duration =
+            a.value("fade_to_idle_duration", cfg.animation.fade_to_idle_duration);
     }
 
     // ── normalisation ─────────────────────────────────────────────────────────
@@ -101,8 +103,9 @@ RendererConfig LoadRendererConfig(const std::string& path)
         if (ff.contains("prores") && ff["prores"].is_object())
             cfg.ffmpeg.prores.profile = ff["prores"].value("profile", cfg.ffmpeg.prores.profile);
         if (ff.contains("h264") && ff["h264"].is_object()) {
-            cfg.ffmpeg.h264.crf    = ff["h264"].value("crf",    cfg.ffmpeg.h264.crf);
-            cfg.ffmpeg.h264.preset = ff["h264"].value("preset", cfg.ffmpeg.h264.preset);
+            cfg.ffmpeg.h264.crf     = ff["h264"].value("crf",     cfg.ffmpeg.h264.crf);
+            cfg.ffmpeg.h264.preset  = ff["h264"].value("preset",  cfg.ffmpeg.h264.preset);
+            cfg.ffmpeg.h264.threads = ff["h264"].value("threads", cfg.ffmpeg.h264.threads);
         }
         if (ff.contains("aac") && ff["aac"].is_object())
             cfg.ffmpeg.aac.bitrate = ff["aac"].value("bitrate", cfg.ffmpeg.aac.bitrate);
