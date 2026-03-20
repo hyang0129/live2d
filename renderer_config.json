@@ -38,7 +38,9 @@
     "_comment_exit":  "breath_guard_exit_fade_duration: seconds to ramp breath suppression from 1→0 after reaction ends.",
     "breath_guard_exit_fade_duration":  0.5,
     "_comment_prio":  "motion_priority_threshold: motion priority level that activates the breath guard (and is assigned to played reactions).",
-    "motion_priority_threshold": 2
+    "motion_priority_threshold": 2,
+    "_comment_fti":   "fade_to_idle_duration: seconds to blend from the end-of-reaction parameter snapshot back to live idle+breath. Per-reaction registry overrides take precedence when non-zero.",
+    "fade_to_idle_duration": 1.0
   },
 
   "normalisation": {
@@ -57,7 +59,7 @@
     "_comment": "Codec quality settings per output format. av1/prores for transparent output; h264 for opaque.",
     "av1":    {"crf": 30, "bitrate": 0},
     "prores": {"profile": 4},
-    "h264":   {"crf": 23, "preset": "medium"},
+    "h264":   {"crf": 23, "preset": "medium", "threads": 8},
     "aac":    {"bitrate": "128k"}
   }
 }

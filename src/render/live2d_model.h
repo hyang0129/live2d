@@ -117,7 +117,19 @@ private:
 
     float _reactionFadeWeight    = 0.0f;
     bool  _reactionWasActive     = false;
-    bool  _suppressBreathGuard   = false; // set from reaction's breath_guard registry field
+    BreathGuardMode _reactionGuardMode = BreathGuardMode::Lerp; // set from registry at TriggerMotion time
+
+    // Fade-to-idle post-motion transition state
+    bool  _fadeToIdleActive   = false;
+    bool  _fadeToIdleArming   = false;  // true on the priority-drop frame, before snapshot is taken
+    float _fadeToIdleProgress = 0.0f;   // 0.0 → 1.0
+    float _fadeToIdleDuration = 0.7f;   // seconds; overridden from RendererConfig
+    bool  _fadeToIdleEnabled          = false;  // set from registry at TriggerMotion time
+    float _fadeToIdleDurationOverride = 0.0f;   // per-reaction override; 0 = use config default
+    int   _prevPriority       = 0;      // previous frame's motion priority (for edge detection)
+    struct FadeToIdleSnapshot {
+        float angleX, angleY, angleZ, bodyAngleX, eyeBallX, eyeBallY;
+    } _fadeToIdleSnap = {};
 
     bool _normalisationActive = false;
     std::string _normalisationPendingMotion;

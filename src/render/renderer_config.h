@@ -49,6 +49,9 @@ struct AnimationConfig {
     float breath_guard_exit_fade_duration  = 0.5f;
     // Motion priority level that triggers the breath guard.
     int   motion_priority_threshold        = 2;
+    // Duration (seconds) of the fade-to-idle post-motion transition.
+    // Smoothly blends the end-of-reaction snapshot toward live idle+breath output.
+    float fade_to_idle_duration            = 1.0f;  // was 0.7f
 };
 
 // ── Out-of-range normalisation ───────────────────────────────────────────────
@@ -66,7 +69,7 @@ struct RenderConfig {
 // ── FFmpeg codec quality ──────────────────────────────────────────────────────
 struct FfmpegAv1Config    { int crf = 30; int bitrate = 0; };
 struct FfmpegProresConfig  { int profile = 4; };
-struct FfmpegH264Config    { int crf = 23; std::string preset = "medium"; };
+struct FfmpegH264Config    { int crf = 23; std::string preset = "medium"; int threads = 0; }; // threads=0 → auto
 struct FfmpegAacConfig     { std::string bitrate = "128k"; };
 
 struct FfmpegCodecConfig {

@@ -68,10 +68,13 @@ bool FfmpegEncoder::Open(const std::string& output_path,
     else if (use_prores)
         cmd << " -c:v prores_ks -profile:v " << codec_cfg.prores.profile
             << " -pix_fmt yuva444p10le";
-    else
+    else {
         cmd << " -c:v libx264 -pix_fmt yuv420p"
             << " -crf " << codec_cfg.h264.crf
             << " -preset " << codec_cfg.h264.preset;
+        if (codec_cfg.h264.threads > 0)
+            cmd << " -threads " << codec_cfg.h264.threads;
+    }
 
     if (!audio_path.empty())
         cmd << " -c:a aac -b:a " << codec_cfg.aac.bitrate;

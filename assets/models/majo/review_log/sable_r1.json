@@ -1,0 +1,123 @@
+{
+  "round": "sable_r1",
+  "spec": "sable-spec-v1.1",
+  "reviewed_at": "2026-03-19",
+  "clips": [
+    {
+      "label": "neutral", "type": "emotion", "verdict": "Approved", "feedback": "base expressions same as before"
+    },
+    {
+      "label": "happy", "type": "emotion", "verdict": "Approved", "feedback": "base expressions same as before"
+    },
+    {
+      "label": "surprised", "type": "emotion", "verdict": "Approved", "feedback": "base expressions same as before"
+    },
+    {
+      "label": "bored", "type": "emotion", "verdict": "Approved", "feedback": "base expressions same as before"
+    },
+    {
+      "label": "sad", "type": "emotion", "verdict": "Approved", "feedback": "base expressions same as before"
+    },
+    {
+      "label": "angry", "type": "emotion", "verdict": "Approved", "feedback": "base expressions same as before"
+    },
+    {
+      "label": "curious", "type": "emotion", "verdict": "Approved", "feedback": "base expressions same as before"
+    },
+    {
+      "label": "embarrassed", "type": "emotion", "verdict": "Approved", "feedback": "base expressions same as before"
+    },
+    {
+      "label": "wry",
+      "type": "emotion",
+      "verdict": "Unreviewed",
+      "feedback": "not sure what to look for",
+      "agent_diagnosis": "No review description was provided. Carry to sable_r2 with explicit pass/fail criteria.",
+      "proposed_fix": "No parameter changes. Re-render with description."
+    },
+    {
+      "label": "grave",
+      "type": "emotion",
+      "verdict": "Unreviewed",
+      "feedback": "not sure what to look for",
+      "agent_diagnosis": "No review description provided. Expression is likely too subtle — BrowLY −0.1 and MouthForm −0.5 may read as near-neutral without priming.",
+      "proposed_fix": "Re-render with description. If still not legible after description: increase MouthForm to −0.7, BrowLY to −0.15."
+    },
+    {
+      "label": "hushed",
+      "type": "emotion",
+      "verdict": "Unreviewed",
+      "feedback": "not sure what to look for",
+      "agent_diagnosis": "No review description provided. EyeLOpen/R 0.85 Multiply and MouthForm 0.15 may not read as distinct from neutral without priming.",
+      "proposed_fix": "Re-render with description. If still not legible: reduce eye Multiply to 0.8, MouthForm to 0.0."
+    },
+    {
+      "label": "contemptuous",
+      "type": "emotion",
+      "verdict": "Approved",
+      "feedback": "looks good"
+    },
+    {
+      "label": "nod_review",
+      "type": "reaction",
+      "verdict": "Unreviewed",
+      "feedback": "did not see a nod; not sure what to look for",
+      "agent_diagnosis": "nod_review is an internal review artifact — it holds head at pitch-down for 3.5s to let reviewer inspect breath resumption. It is NOT a discourse nod. Human was not told this.",
+      "proposed_fix": "No changes. Re-render with explicit description."
+    },
+    {
+      "label": "nod", "type": "reaction", "verdict": "Approved", "feedback": "looks correct"
+    },
+    {
+      "label": "deep_nod", "type": "reaction", "verdict": "Approved", "feedback": "looks correct"
+    },
+    {
+      "label": "look_away",
+      "type": "reaction",
+      "verdict": "Revise",
+      "feedback": "bad snap at the end; possibly a breath guard issue; was present in previous versions and missed",
+      "agent_diagnosis": "look_away.motion3.json AngleX returns from 20° to 0° linearly over 0.5s (t=1.0→1.5) — 40°/s, visually abrupt. Pre-existing defect not caught in rounds 1–3.",
+      "proposed_fix": "Extend duration to 2.0s so return is over 1.0s (t=1.0→2.0). Increase model3.json LookAway FadeOutTime 0.6→1.0."
+    },
+    {
+      "label": "tap",
+      "type": "reaction",
+      "verdict": "Revise",
+      "feedback": "same snap issue as look_away at the end",
+      "agent_diagnosis": "tap model3.json FadeOutTime 0.5s likely insufficient for lerp guard to suppress breath phase jump at t=0.8 motion exit. Pre-existing defect.",
+      "proposed_fix": "Increase model3.json Tap FadeOutTime 0.5→0.8. Increase tap.motion3.json per-curve FadeOutTime 0.5→0.8."
+    },
+    {
+      "label": "lean_in",
+      "type": "reaction",
+      "verdict": "Revise",
+      "feedback": "should be slower",
+      "agent_diagnosis": "Current ease-in reaches peak at t=0.8s — too fast; reads closer to a nod than a deliberate lean. Needs a more unhurried onset.",
+      "proposed_fix": "Extend ease-in to 1.2s, ease-out to 1.0s. New duration 3.2s: [0,0 → 1.2,−5 → 2.2,−5 → 3.2,0]."
+    },
+    {
+      "label": "consult",
+      "type": "reaction",
+      "verdict": "Revise",
+      "feedback": "snap at the end; otherwise looks reasonable",
+      "agent_diagnosis": "consult AngleZ returns from 12° over 0.7s (17°/s). FadeOutTime 0.6s insufficient overlap with lerp guard for smooth exit.",
+      "proposed_fix": "Extend duration to 2.5s so return is over 1.2s (t=1.3→2.5). Increase model3.json Consult FadeOutTime 0.6→1.0."
+    },
+    {
+      "label": "glance_down",
+      "type": "reaction",
+      "verdict": "Revise",
+      "feedback": "snap at the end",
+      "agent_diagnosis": "glance_down AngleY returns over only 0.35s (~11°/s). FadeOutTime 0.5s insufficient.",
+      "proposed_fix": "Extend duration to 1.4s so return is over 0.75s (t=0.65→1.4). Increase model3.json GlanceDown FadeOutTime 0.5→0.7."
+    },
+    {
+      "label": "address",
+      "type": "reaction",
+      "verdict": "Unreviewed",
+      "feedback": "not sure what to look for",
+      "agent_diagnosis": "No review description provided. Motion is most legible when head starts off-center; if already near-center it appears as only a chin-lift.",
+      "proposed_fix": "No parameter changes. Re-render with description."
+    }
+  ]
+}

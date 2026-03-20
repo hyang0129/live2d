@@ -1,7 +1,7 @@
 {
 	"Version": 3,
 	"Meta": {
-		"Duration": 1.5,
+		"Duration": 1.0,
 		"Fps": 30.0,
 		"Loop": false,
 		"AreBeziersRestricted": true,
@@ -14,14 +14,14 @@
 	"Curves": [
 		{
 			"Target": "Parameter",
-			"Id": "ParamAngleX",
-			"FadeInTime": 0.15,
-			"FadeOutTime": 0.6,
+			"Id": "ParamAngleY",
+			"FadeInTime": 0.3,
+			"FadeOutTime": 0.0,
 			"Segments": [
 				0.0, 0.0,
-				0, 0.5, 20.0,
-				0, 1.0, 20.0,
-				0, 1.5, 0.0
+				0, 0.3, 6.0,
+				0, 0.8, 6.0,
+				0, 1.0, 0.0
 			]
 		}
 	],

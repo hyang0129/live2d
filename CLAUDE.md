@@ -74,7 +74,7 @@ docs/
 ### Key Files
 
 - `docs/live2d-avatar-api-contract.md` — scene manifest schema, cue vocabulary, CLI spec
-- `docs/authoring-guide.md` — **read this before working on any motion or expression**. Covers: motion vs expression classification, `.motion3.json` and `.exp3.json` formats, registry entry syntax, entry validation modes (none/implicit/explicit), normalisation behaviour (smoothstep, auto-rate, 0.1s minimum), breath guard modes, breath speed, and common failure modes.
+- `docs/authoring-guide.md` — **read this before working on any motion or expression**. Two-part document: (1) quick-reference format specs — motion vs expression classification, `.motion3.json` and `.exp3.json` formats, registry entry syntax, entry validation modes (none/implicit/explicit), normalisation behaviour (smoothstep, auto-rate, 0.1s minimum), breath guard modes, breath speed, and common failure modes; (2) step-by-step authoring workflow — audit → author → review render → human review → revision loop → registry update → spec compliance, plus accumulated lessons from the majo reference implementation (axis calibration, FadeOut residual snap, review overlay standards, and more).
 - `docs/motion-definition.md` — detailed spec for motion entry classification and out-of-range handling (the authoritative reference; `authoring-guide.md` is the fast-lookup summary)
 - `docs/model-onboarding.md` — checklist for evaluating and registering new models (pass/fail criteria, test-render workflow, rejection log)
 - `assets/models/registry.json` — model registry mapping IDs to paths, emotions, and reactions
