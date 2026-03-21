@@ -111,9 +111,14 @@ RendererConfig LoadRendererConfig(const std::string& path)
             cfg.ffmpeg.aac.bitrate = ff["aac"].value("bitrate", cfg.ffmpeg.aac.bitrate);
     }
 
-    Logger::Info("renderer_config.json loaded: entry_fade=%.2fs exit_fade=%.2fs tail=%.1fs",
+    Logger::Info("renderer_config.json loaded: entry_fade=%.2fs exit_fade=%.2fs tail=%.1fs "
+                 "breath_peaks: angle_x=%.3f angle_y=%.3f angle_z=%.3f body_x=%.3f",
                  cfg.animation.breath_guard_entry_fade_duration,
                  cfg.animation.breath_guard_exit_fade_duration,
-                 cfg.render.scene_tail_duration);
+                 cfg.render.scene_tail_duration,
+                 cfg.breath.angle_x.peak,
+                 cfg.breath.angle_y.peak,
+                 cfg.breath.angle_z.peak,
+                 cfg.breath.body_angle_x.peak);
     return cfg;
 }
