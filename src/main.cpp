@@ -19,6 +19,8 @@ namespace fs = std::filesystem;
 #include <CubismFramework.hpp>
 #ifdef _WIN32
 #  include <Rendering/D3D11/CubismRenderer_D3D11.hpp>
+#elif defined(USE_VULKAN_RENDERER)
+#  include <Rendering/Vulkan/CubismRenderer_Vulkan.hpp>
 #endif
 
 #include "allocator.h"
@@ -173,6 +175,9 @@ int main(int argc, char* argv[])
     // Tell the D3D11 renderer about our device (required before CreateRenderer)
     // bufferSetNum=1 → single buffered (no swap chain needed for offscreen)
     Rendering::CubismRenderer_D3D11::InitializeConstantSettings(1, offscreen.Device());
+#elif defined(USE_VULKAN_RENDERER)
+    // The Vulkan renderer's static settings were already applied in OffscreenVulkan::Init().
+    // Nothing extra needed here.
 #endif
 
     // ── 7. Load Live2D model ──────────────────────────────────────────────────
@@ -180,6 +185,10 @@ int main(int argc, char* argv[])
     model.SetConfig(rendererCfg);  // must be before Load() so breath params apply
 #ifdef _WIN32
     if (!model.Load(profile.path, offscreen.Device(), offscreen.Context())) {
+#elif defined(USE_VULKAN_RENDERER)
+    if (!model.Load(profile.path,
+                    offscreen.Device(), offscreen.PhysicalDevice(),
+                    offscreen.CommandPool(), offscreen.GraphicsQueue())) {
 #else
     if (!model.Load(profile.path)) {
 #endif

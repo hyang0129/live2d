@@ -4,6 +4,9 @@
 #ifdef _WIN32
 #  define NOMINMAX
 #  include <Rendering/D3D11/CubismRenderer_D3D11.hpp>
+#elif defined(USE_VULKAN_RENDERER)
+#  include <Rendering/Vulkan/CubismRenderer_Vulkan.hpp>
+   using namespace Live2D::Cubism::Framework::Rendering;
 #endif
 
 #include <Math/CubismMatrix44.hpp>

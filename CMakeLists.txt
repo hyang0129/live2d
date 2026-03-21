@@ -79,6 +79,31 @@ if(WIN32)
     d3dcompiler.lib
   )
 
+elseif(RENDERER_BACKEND STREQUAL "Vulkan")
+
+  # ── Linux / Vulkan (Mesa DZN headless) ───────────────────────────────────────
+  add_library(Live2DCubismCore STATIC IMPORTED)
+  set_target_properties(Live2DCubismCore PROPERTIES
+    IMPORTED_LOCATION             ${CORE_PATH}/lib/linux/x86_64/libLive2DCubismCore.a
+    INTERFACE_INCLUDE_DIRECTORIES ${CORE_PATH}/include
+  )
+
+  find_package(Vulkan REQUIRED)
+
+  set(FRAMEWORK_SOURCE Vulkan)
+  add_subdirectory(${FRAMEWORK_PATH} ${CMAKE_CURRENT_BINARY_DIR}/Framework)
+  target_link_libraries(Framework Live2DCubismCore ${Vulkan_LIBRARIES})
+  target_include_directories(Framework PUBLIC ${Vulkan_INCLUDE_DIRS})
+
+  # Compile Vulkan GLSL shaders to SPIR-V (uses glslc wrapper → glslangValidator)
+  add_subdirectory(
+    ${FRAMEWORK_PATH}/src/Rendering/Vulkan/Shaders
+    ${CMAKE_CURRENT_BINARY_DIR}/FrameworkShaders)
+  add_dependencies(Framework FrameworkShaders)
+
+  # Propagate backend flag to all translation units
+  add_compile_definitions(USE_VULKAN_RENDERER)
+
 else()
 
   # ── Linux / OpenGL ───────────────────────────────────────────────────────────
@@ -142,6 +167,20 @@ if(WIN32)
   )
   set_target_properties(live2d-render PROPERTIES
     VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  )
+elseif(RENDERER_BACKEND STREQUAL "Vulkan")
+  target_link_libraries(live2d-render PRIVATE
+    Framework
+    SampleCommon
+    nlohmann_json::nlohmann_json
+    ${Vulkan_LIBRARIES}
+  )
+  # Shader SPIRVs are copied at configure-time by the FrameworkShaders target.
+  # The runtime binary looks for FrameworkShaders/ relative to its CWD (repo root).
+  add_custom_command(TARGET live2d-render POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${CMAKE_CURRENT_BINARY_DIR}/FrameworkShaders/compiledShaders
+      ${CMAKE_SOURCE_DIR}/FrameworkShaders
   )
 else()
   target_link_libraries(live2d-render PRIVATE

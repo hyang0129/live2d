@@ -22,6 +22,14 @@ if(WIN32)
   target_include_directories(live2d-render PRIVATE
     ${CMAKE_SOURCE_DIR}/cubism/Samples/D3D11/thirdParty/DirectXTK/Inc
   )
+elseif(RENDERER_BACKEND STREQUAL "Vulkan")
+  target_sources(live2d-render PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/render/offscreen_vulkan.cpp
+  )
+  target_include_directories(live2d-render PRIVATE
+    ${Vulkan_INCLUDE_DIRS}
+    ${CMAKE_SOURCE_DIR}/cubism/Samples/Vulkan/thirdParty/stb
+  )
 else()
   target_sources(live2d-render PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/render/offscreen_opengl.cpp

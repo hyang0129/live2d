@@ -35,3 +35,14 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         curl \
         unzip \
     && apt-get autoremove -y && apt-get clean -y
+
+# Upgrade Mesa to 24.x via kisak-mesa PPA — enables hardware EGL/DRI
+# (requires /dev/dri passthrough in devcontainer.json + WSLg or DRI nodes on host)
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    apt-get update && apt-get -y install --no-install-recommends software-properties-common \
+    && add-apt-repository --yes ppa:kisak/kisak-mesa \
+    && apt-get update && apt-get -y install --no-install-recommends \
+        libgl1-mesa-dri \
+        libegl-mesa0 \
+        libgles2-mesa

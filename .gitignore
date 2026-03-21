@@ -1,6 +1,8 @@
 # Build output
 build/
 **/build/
+build_opengl/
+build_vulkan/
 x64/
 *.exe
 *.lib

@@ -16,6 +16,10 @@
 #ifdef _WIN32
 #  include <Rendering/D3D11/CubismRenderer_D3D11.hpp>
 #  include <WICTextureLoader.h>  // DirectXTK
+#elif defined(USE_VULKAN_RENDERER)
+#  include <Rendering/Vulkan/CubismRenderer_Vulkan.hpp>
+#  define STB_IMAGE_IMPLEMENTATION
+#  include <stb_image.h>
 #else
 #  include <Rendering/OpenGL/CubismRenderer_OpenGLES2.hpp>
 #  define STB_IMAGE_IMPLEMENTATION
@@ -59,6 +63,10 @@ Live2DModel::~Live2DModel()
 #ifdef _WIN32
         if (t.srv) { t.srv->Release(); t.srv = nullptr; }
         if (t.res) { t.res->Release(); t.res = nullptr; }
+#elif defined(USE_VULKAN_RENDERER)
+        // The CubismImageVulkan holds Vk resources but doesn't own the device.
+        // We can't destroy here — they'll be freed when the device is destroyed.
+        (void)t;
 #else
         if (t.id) { glDeleteTextures(1, &t.id); t.id = 0; }
 #endif
@@ -84,6 +92,10 @@ Live2DModel::~Live2DModel()
 bool Live2DModel::Load(const std::string& model3_json_path,
                        ID3D11Device*        device,
                        ID3D11DeviceContext* context)
+#elif defined(USE_VULKAN_RENDERER)
+bool Live2DModel::Load(const std::string& model3_json_path,
+                       VkDevice device, VkPhysicalDevice physDevice,
+                       VkCommandPool commandPool, VkQueue queue)
 #else
 bool Live2DModel::Load(const std::string& model3_json_path)
 #endif
@@ -110,6 +122,8 @@ bool Live2DModel::Load(const std::string& model3_json_path)
     CreateRenderer();
 #ifdef _WIN32
     SetupTextures(device, context);
+#elif defined(USE_VULKAN_RENDERER)
+    SetupTextures(device, physDevice, commandPool, queue);
 #else
     SetupTextures();
 #endif
@@ -276,6 +290,137 @@ void Live2DModel::SetupTextures(ID3D11Device* device, ID3D11DeviceContext* conte
         } else {
             Logger::Warn("Texture load failed for \"%s\": 0x%08X", texPath.c_str(), (unsigned)hr);
         }
+    }
+
+    renderer->IsPremultipliedAlpha(false);
+}
+
+#elif defined(USE_VULKAN_RENDERER)
+
+void Live2DModel::SetupTextures(VkDevice device, VkPhysicalDevice physDevice,
+                                VkCommandPool commandPool, VkQueue queue)
+{
+    using namespace Live2D::Cubism::Framework;
+
+    const int texCount = _setting->GetTextureCount();
+    _textures.resize(texCount);
+
+    auto* renderer = GetRenderer<Rendering::CubismRenderer_Vulkan>();
+
+    for (int i = 0; i < texCount; ++i) {
+        const char* fname = _setting->GetTextureFileName(i);
+        if (!fname || fname[0] == '\0') continue;
+
+        const std::string texPath = std::string(_modelDir.GetRawString()) + fname;
+
+        int w = 0, h = 0, channels = 0;
+        unsigned char* pixels = stbi_load(texPath.c_str(), &w, &h, &channels, STBI_rgb_alpha);
+        if (!pixels) {
+            Logger::Warn("Vulkan texture load failed: \"%s\" — %s",
+                         texPath.c_str(), stbi_failure_reason());
+            continue;
+        }
+
+        const VkDeviceSize imgSize = (VkDeviceSize)w * h * 4;
+
+        // Staging buffer: host-visible, copy source
+        VkBuffer stagingBuf = VK_NULL_HANDLE;
+        VkDeviceMemory stagingMem = VK_NULL_HANDLE;
+        {
+            VkBufferCreateInfo bci{};
+            bci.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+            bci.size  = imgSize;
+            bci.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+            vkCreateBuffer(device, &bci, nullptr, &stagingBuf);
+
+            VkMemoryRequirements mr;
+            vkGetBufferMemoryRequirements(device, stagingBuf, &mr);
+
+            VkPhysicalDeviceMemoryProperties memProps;
+            vkGetPhysicalDeviceMemoryProperties(physDevice, &memProps);
+            uint32_t memIdx = UINT32_MAX;
+            const VkMemoryPropertyFlags want =
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+            for (uint32_t k = 0; k < memProps.memoryTypeCount; ++k) {
+                if ((mr.memoryTypeBits & (1u << k)) &&
+                    (memProps.memoryTypes[k].propertyFlags & want) == want) {
+                    memIdx = k; break;
+                }
+            }
+            VkMemoryAllocateInfo mai{};
+            mai.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+            mai.allocationSize  = mr.size;
+            mai.memoryTypeIndex = memIdx;
+            vkAllocateMemory(device, &mai, nullptr, &stagingMem);
+            vkBindBufferMemory(device, stagingBuf, stagingMem, 0);
+
+            void* mapped = nullptr;
+            vkMapMemory(device, stagingMem, 0, imgSize, 0, &mapped);
+            memcpy(mapped, pixels, (size_t)imgSize);
+            vkUnmapMemory(device, stagingMem);
+        }
+        stbi_image_free(pixels);
+
+        // Device-local image
+        CubismImageVulkan& img = _textures[i].image;
+        img.CreateImage(device, physDevice, w, h, 1,
+                        VK_FORMAT_R8G8B8A8_UNORM,
+                        VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+        img.CreateView(device, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+        img.CreateSampler(device, 1.0f, 1);
+
+        // Upload via one-shot command buffer
+        {
+            VkCommandBufferAllocateInfo cai{};
+            cai.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+            cai.commandPool        = commandPool;
+            cai.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+            cai.commandBufferCount = 1;
+            VkCommandBuffer cmd = VK_NULL_HANDLE;
+            vkAllocateCommandBuffers(device, &cai, &cmd);
+
+            VkCommandBufferBeginInfo cbi{};
+            cbi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+            cbi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+            vkBeginCommandBuffer(cmd, &cbi);
+
+            img.SetImageLayout(cmd, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
+                               VK_IMAGE_ASPECT_COLOR_BIT);
+
+            VkBufferImageCopy region{};
+            region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            region.imageSubresource.layerCount = 1;
+            region.imageExtent                 = { (uint32_t)w, (uint32_t)h, 1 };
+            vkCmdCopyBufferToImage(cmd, stagingBuf, img.GetImage(),
+                                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+            img.SetImageLayout(cmd, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1,
+                               VK_IMAGE_ASPECT_COLOR_BIT);
+
+            vkEndCommandBuffer(cmd);
+
+            VkSubmitInfo si{};
+            si.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+            si.commandBufferCount = 1;
+            si.pCommandBuffers    = &cmd;
+            VkFenceCreateInfo fi{};
+            fi.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+            VkFence fence = VK_NULL_HANDLE;
+            vkCreateFence(device, &fi, nullptr, &fence);
+            vkQueueSubmit(queue, 1, &si, fence);
+            vkWaitForFences(device, 1, &fence, VK_TRUE, UINT64_MAX);
+            vkDestroyFence(device, fence, nullptr);
+            vkFreeCommandBuffers(device, commandPool, 1, &cmd);
+        }
+
+        // Clean up staging resources
+        vkDestroyBuffer(device, stagingBuf, nullptr);
+        vkFreeMemory(device, stagingMem, nullptr);
+
+        _textures[i].valid = true;
+        renderer->BindTexture(img);
+        Logger::Debug("Vulkan texture %d loaded: \"%s\" (%dx%d)", i, texPath.c_str(), w, h);
     }
 
     renderer->IsPremultipliedAlpha(false);
@@ -572,6 +717,8 @@ void Live2DModel::Draw(CubismMatrix44& vpMatrix)
     vpMatrix.MultiplyByMatrix(_modelMatrix);
 #ifdef _WIN32
     auto* renderer = GetRenderer<Rendering::CubismRenderer_D3D11>();
+#elif defined(USE_VULKAN_RENDERER)
+    auto* renderer = GetRenderer<Rendering::CubismRenderer_Vulkan>();
 #else
     auto* renderer = GetRenderer<Rendering::CubismRenderer_OpenGLES2>();
 #endif

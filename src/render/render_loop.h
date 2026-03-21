@@ -8,6 +8,9 @@
 #ifdef _WIN32
 #  include "offscreen_d3d11.h"
    using OffscreenRenderer = OffscreenD3D11;
+#elif defined(USE_VULKAN_RENDERER)
+#  include "offscreen_vulkan.h"
+   using OffscreenRenderer = OffscreenVulkan;
 #else
 #  include "offscreen_opengl.h"
    using OffscreenRenderer = OffscreenOpenGL;
