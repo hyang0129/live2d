@@ -33,6 +33,21 @@
       }
     },
     {
+      "name": "linux-vulkan",
+      "displayName": "Linux (Vulkan / Mesa DZN / GCC)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "RENDERER_BACKEND": "Vulkan",
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
       "name": "default",
       "displayName": "Default (auto-detect platform)",
       "generator": "Ninja",
@@ -51,6 +66,10 @@
     {
       "name": "linux",
       "configurePreset": "linux"
+    },
+    {
+      "name": "linux-vulkan",
+      "configurePreset": "linux-vulkan"
     },
     {
       "name": "default",

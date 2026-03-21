@@ -11,6 +11,9 @@
 #ifdef _WIN32
 #  include <Rendering/D3D11/CubismOffscreenSurface_D3D11.hpp>
 #  include <d3d11.h>
+#elif defined(USE_VULKAN_RENDERER)
+#  include <vulkan/vulkan.h>
+#  include <Rendering/Vulkan/CubismClass_Vulkan.hpp>
 #else
 #  include <GL/glew.h>
 #endif
@@ -34,6 +37,11 @@ public:
     bool Load(const std::string& model3_json_path,
               ID3D11Device*        device,
               ID3D11DeviceContext* context);
+#elif defined(USE_VULKAN_RENDERER)
+    // device/physDevice/commandPool/queue must outlive this object.
+    bool Load(const std::string& model3_json_path,
+              VkDevice device, VkPhysicalDevice physDevice,
+              VkCommandPool commandPool, VkQueue queue);
 #else
     // GL context must be current when called and must outlive this object.
     bool Load(const std::string& model3_json_path);
@@ -76,6 +84,9 @@ private:
     void SetupModel(Csm::ICubismModelSetting* setting);
 #ifdef _WIN32
     void SetupTextures(ID3D11Device* device, ID3D11DeviceContext* context);
+#elif defined(USE_VULKAN_RENDERER)
+    void SetupTextures(VkDevice device, VkPhysicalDevice physDevice,
+                       VkCommandPool commandPool, VkQueue queue);
 #else
     void SetupTextures();
 #endif
@@ -105,6 +116,11 @@ private:
     struct TexEntry {
         ID3D11Resource*           res = nullptr;
         ID3D11ShaderResourceView* srv = nullptr;
+    };
+#elif defined(USE_VULKAN_RENDERER)
+    struct TexEntry {
+        Live2D::Cubism::Framework::CubismImageVulkan image;
+        bool valid = false;
     };
 #else
     struct TexEntry {

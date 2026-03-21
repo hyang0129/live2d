@@ -31,6 +31,8 @@
     }
   },
 
+  "runArgs": ["--device=/dev/dri"],
+
   "mounts": [
     // Persist CMake build cache across container rebuilds
     "source=live2d-build-cache,target=${containerWorkspaceFolder}/build,type=volume"
