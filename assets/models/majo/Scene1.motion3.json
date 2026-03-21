@@ -1,4 +1,5 @@
 {
+	"_comment": "This file is NOT loaded by the live2d-render binary for idle animation. Idle head movement is driven entirely by CubismBreath parameters in renderer_config.json. Param28 and Param30 here are custom visual effect parameters, not head angles. Editing this file has no effect on rendered output.",
 	"Version": 3,
 	"Meta": {
 		"Duration": 2.983,
